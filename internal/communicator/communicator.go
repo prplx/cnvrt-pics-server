@@ -1,13 +1,30 @@
 package communicator
 
 import (
-	"github.com/gorilla/websocket"
+	"github.com/pusher/pusher-http-go/v5"
 )
 
 type Communicator struct {
-	clients map[string]map[*websocket.Conn]bool
+	client pusher.Client
 }
 
 func NewCommunicator() *Communicator {
-	return &Communicator{}
+	client := pusher.Client{
+		AppID:   "1528434",
+		Key:     "238e350521ef2c91b881",
+		Secret:  "ada76c58d004a6db5abe",
+		Cluster: "eu",
+		Secure:  true,
+	}
+
+	return &Communicator{
+		client: client,
+	}
+}
+
+func (c *Communicator) SendStartProcess(jobID, fileName string) error {
+	return c.client.Trigger(jobID, "processing", map[string]string{
+		"event": "started",
+		"file":  fileName,
+	})
 }

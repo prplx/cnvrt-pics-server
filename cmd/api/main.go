@@ -5,9 +5,12 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/prplx/lighter.pics/internal/communicator"
+	"github.com/prplx/lighter.pics/internal/processor"
 )
 
-type application struct{}
+// type application struct {
+// }
 
 func main() {
 	fiberApp := fiber.New(fiber.Config{
@@ -17,8 +20,15 @@ func main() {
 		AllowOrigins: "http://localhost:3000",
 		AllowHeaders: "Origin, Content-Type, Accept",
 	}))
-	app := &application{}
-	app.routes(fiberApp)
+	communicator := communicator.NewCommunicator()
+	processor := processor.NewProcessor(communicator)
+	v1 := fiberApp.Group("/api/v1")
+	v1.Post("/process", processor.Handle)
+	v1.Get("/ping", func(ctx *fiber.Ctx) error {
+		return ctx.JSON(fiber.Map{
+			"message": "pong",
+		})
+	})
 
 	log.Fatal(fiberApp.Listen(":3001"))
 }
