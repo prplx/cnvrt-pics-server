@@ -22,9 +22,16 @@ func NewCommunicator() *Communicator {
 	}
 }
 
-func (c *Communicator) SendStartProcess(jobID, fileName string) error {
+func (c *Communicator) SendStartProcessing(jobID, fileName string) error {
 	return c.client.Trigger(jobID, "processing", map[string]string{
 		"event": "started",
+		"file":  fileName,
+	})
+}
+
+func (c *Communicator) SendErrorProcessing(jobID, fileName string) error {
+	return c.client.Trigger(jobID, "processing", map[string]string{
+		"event": "error",
 		"file":  fileName,
 	})
 }
