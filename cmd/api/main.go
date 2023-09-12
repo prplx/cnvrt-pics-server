@@ -7,11 +7,13 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/prplx/lighter.pics/internal/processor"
+	"github.com/prplx/lighter.pics/internal/router"
 	"github.com/prplx/lighter.pics/internal/services"
 	"github.com/prplx/lighter.pics/pkg/jsonlog"
 )
 
 // type application struct {
+// 	fiberApp *fiber.App
 // }
 
 func main() {
@@ -28,13 +30,7 @@ func main() {
 		Logger: logger,
 	})
 	processor := processor.NewProcessor(services)
-	v1 := fiberApp.Group("/api/v1")
-	v1.Post("/process", processor.Handle)
-	v1.Get("/ping", func(ctx *fiber.Ctx) error {
-		return ctx.JSON(fiber.Map{
-			"message": "pong",
-		})
-	})
+	router.Register(fiberApp, processor)
 
 	log.Fatal(fiberApp.Listen(":3001"))
 }

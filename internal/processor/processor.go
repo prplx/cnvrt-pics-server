@@ -13,6 +13,10 @@ import (
 	"github.com/prplx/lighter.pics/internal/services"
 )
 
+const (
+	UploadDir = "./uploads"
+)
+
 type Processor struct {
 	communicator services.Communicator
 	logger       services.Logger
@@ -36,7 +40,7 @@ func (p *Processor) Handle(ctx *fiber.Ctx) error {
 	}
 
 	jobID := uuid.New().String()
-	path := fmt.Sprintf("./uploads/%s", jobID)
+	path := fmt.Sprintf(UploadDir+"/%s", jobID)
 
 	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
 		err := os.MkdirAll(path, os.ModePerm)
@@ -50,7 +54,7 @@ func (p *Processor) Handle(ctx *fiber.Ctx) error {
 
 	for _, fileHeaders := range form.File {
 		for _, fileHeader := range fileHeaders {
-			err = ctx.SaveFile(fileHeader, fmt.Sprintf("./uploads/%s/%s", jobID, fileHeader.Filename))
+			err = ctx.SaveFile(fileHeader, fmt.Sprintf(UploadDir+"/%s/%s", jobID, fileHeader.Filename))
 			if err != nil {
 				p.logger.PrintError(err, map[string]string{
 					"message": "error saving file",
@@ -67,7 +71,7 @@ func (p *Processor) Handle(ctx *fiber.Ctx) error {
 
 	buffers := [][]byte{}
 	for _, file := range files {
-		filePath := fmt.Sprintf("./uploads/%s/%s", jobID, file.Name())
+		filePath := fmt.Sprintf(UploadDir+"/%s/%s", jobID, file.Name())
 		file, err := os.Open(filePath)
 		if err != nil {
 			p.logger.PrintError(err, map[string]string{
@@ -121,7 +125,7 @@ func (p *Processor) process(jobID, fileName string, buffer []byte) {
 		return
 	}
 
-	writerError := bimg.Write("./uploads/"+jobID+"/"+fileName+".webp", processed)
+	writerError := bimg.Write(UploadDir+"/"+jobID+"/"+fileName+".webp", processed)
 	if writerError != nil {
 		reportError(writerError)
 	}
