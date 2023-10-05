@@ -14,6 +14,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/prplx/lighter.pics/internal/processor"
 	svc "github.com/prplx/lighter.pics/internal/services"
+	"github.com/prplx/lighter.pics/internal/types"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 )
@@ -39,6 +40,10 @@ func (c *CommunicatorMock) SendErrorProcessing(jobID, fileName string) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.ErrCalls++
+	return nil
+}
+
+func (c *CommunicatorMock) SendSuccessProcessing(jobID string, result types.SuccessResult) error {
 	return nil
 }
 

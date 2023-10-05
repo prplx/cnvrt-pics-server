@@ -1,4 +1,6 @@
-.PHONY: run run/live test audit tidy
+include .env
+
+.PHONY: run run/live test audit tidy db/migrate_up db/migrate_down db/migrate_force db/migrate_create
 
 MAIN_PACKAGE_PATH := ./cmd/api
 BINARY_NAME := lighter-pics
@@ -33,3 +35,19 @@ audit:
 tidy:
 	go fmt ./...
 	go mod tidy -v
+
+
+db/migrate_up:
+	migrate -path=./migrations -database=${DB_DSN} up
+
+db/migrate_down:
+	migrate -path=./migrations -database=${DB_DSN} down
+
+db/migrate_force:
+	migrate -path=./migrations -database=${DB_DSN} force $(version)
+
+db/migrate_create:
+	migrate create -seq -ext=.sql -dir=./migrations $(name)
+
+
+

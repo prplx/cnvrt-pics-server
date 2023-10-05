@@ -1,6 +1,9 @@
 package communicator
 
 import (
+	"strconv"
+
+	"github.com/prplx/lighter.pics/internal/types"
 	"github.com/pusher/pusher-http-go/v5"
 )
 
@@ -23,15 +26,25 @@ func NewCommunicator() *Communicator {
 }
 
 func (c *Communicator) SendStartProcessing(jobID, fileName string) error {
-	return c.client.Trigger(jobID, "processing", map[string]string{
+	return c.client.Trigger("cache-"+jobID, "processing", map[string]string{
 		"event": "started",
 		"file":  fileName,
 	})
 }
 
 func (c *Communicator) SendErrorProcessing(jobID, fileName string) error {
-	return c.client.Trigger(jobID, "processing", map[string]string{
+	return c.client.Trigger("cache-"+jobID, "processing", map[string]string{
 		"event": "error",
 		"file":  fileName,
+	})
+}
+
+func (c *Communicator) SendSuccessProcessing(jobID string, result types.SuccessResult) error {
+	return c.client.Trigger("cache-"+jobID, "processing", map[string]string{
+		"event":          "success",
+		"sourceFile":     result.SourceFileName,
+		"targetFile":     result.TargetFileName,
+		"sourceFileSize": strconv.FormatInt(result.SourceFileSize, 10),
+		"targetFileSize": strconv.FormatInt(result.TargetFileSize, 10),
 	})
 }
