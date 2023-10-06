@@ -7,6 +7,8 @@ import (
 	"runtime/debug"
 	"sync"
 	"time"
+
+	"github.com/prplx/lighter.pics/internal/types"
 )
 
 // Level represents the severity level of a log entry.
@@ -54,23 +56,23 @@ func NewLogger(out io.Writer, minLevel Level) *Logger {
 }
 
 // PrintInfo is a helper that writes Info level log entries.
-func (l *Logger) PrintInfo(message string, properties map[string]string) {
-	l.print(LevelInfo, message, properties)
+func (l *Logger) PrintInfo(message string, properties ...types.AnyMap) {
+	l.print(LevelInfo, message, properties...)
 }
 
 // PrintError is a helper that writes Info level log entries.
-func (l *Logger) PrintError(err error, properties map[string]string) {
-	l.print(LevelError, err.Error(), properties)
+func (l *Logger) PrintError(err error, properties ...types.AnyMap) {
+	l.print(LevelError, err.Error(), properties...)
 }
 
 // PrintFatal is a helper that writes Info level log entries. It also terminates the application.
-func (l *Logger) PrintFatal(err error, properties map[string]string) {
-	l.print(LevelFatal, err.Error(), properties)
+func (l *Logger) PrintFatal(err error, properties ...types.AnyMap) {
+	l.print(LevelFatal, err.Error(), properties...)
 	os.Exit(1)
 }
 
 // print is an internal method for writing a log entry.
-func (l *Logger) print(level Level, message string, properties map[string]string) (int, error) {
+func (l *Logger) print(level Level, message string, properties ...types.AnyMap) (int, error) {
 	// If the severity level of the log entry is below the minimum severity for the logger
 	// then return with no further action
 	if level < l.minLevel {
@@ -79,16 +81,19 @@ func (l *Logger) print(level Level, message string, properties map[string]string
 
 	// Declare an anonymous struct holding the data for the log entry.
 	aux := struct {
-		Level      string            `json:"level"`
-		Time       string            `json:"time"`
-		Message    string            `json:"message"`
-		Properties map[string]string `json:"properties,omitempty"`
-		Trace      string            `json:"trace,omitempty"`
+		Level      string       `json:"level"`
+		Time       string       `json:"time"`
+		Message    string       `json:"message"`
+		Properties types.AnyMap `json:"properties,omitempty"`
+		Trace      string       `json:"trace,omitempty"`
 	}{
-		Level:      level.String(),
-		Time:       time.Now().UTC().Format(time.RFC3339),
-		Message:    message,
-		Properties: properties,
+		Level:   level.String(),
+		Time:    time.Now().UTC().Format(time.RFC3339),
+		Message: message,
+	}
+
+	if len(properties) > 0 {
+		aux.Properties = properties[0]
 	}
 
 	// Include a stack trace for entries at the ERROR and FATAL levels.

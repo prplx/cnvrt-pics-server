@@ -5,7 +5,7 @@ import (
 )
 
 type Jobs interface {
-	Create() (string, error)
+	Create() (int, error)
 }
 
 type File struct {
@@ -16,13 +16,11 @@ type File struct {
 }
 
 type Files interface {
-	Create(jobID, fileName string) error
-	CreateBulk(jobID string, fileNames []string) error
-	GetByJobIDAndName(jobID, fileName string) (*File, error)
+	CreateBulk(jobID int, fileNames []string) ([]int, error)
 }
 
 type Operations interface {
-	Create(jobID string, fileID int, format string, quality int, fileName string, width, height int) (string, error)
+	Create(jobID, fileID int, format string, quality int, fileName string, width, height int) (string, error)
 }
 
 type Repositories struct {

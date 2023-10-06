@@ -29,21 +29,21 @@ type CommunicatorMock struct {
 	ErrCalls   int
 }
 
-func (c *CommunicatorMock) SendStartProcessing(jobID, fileName string) error {
+func (c *CommunicatorMock) SendStartProcessing(jobID, fileID int, fileName string) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.StartCalls++
 	return nil
 }
 
-func (c *CommunicatorMock) SendErrorProcessing(jobID, fileName string) error {
+func (c *CommunicatorMock) SendErrorProcessing(jobID, fileID int, fileName string) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.ErrCalls++
 	return nil
 }
 
-func (c *CommunicatorMock) SendSuccessProcessing(jobID string, result types.SuccessResult) error {
+func (c *CommunicatorMock) SendSuccessProcessing(jobID int, result types.SuccessResult) error {
 	return nil
 }
 
@@ -62,11 +62,11 @@ func (c *CommunicatorMock) GetStartCalls() int {
 
 type LoggerMock struct{}
 
-func (l *LoggerMock) PrintInfo(message string, properties map[string]string) {}
+func (l *LoggerMock) PrintInfo(message string, properties ...types.AnyMap) {}
 
-func (l *LoggerMock) PrintError(err error, properties map[string]string) {}
+func (l *LoggerMock) PrintError(err error, properties ...types.AnyMap) {}
 
-func (l *LoggerMock) PrintFatal(err error, properties map[string]string) {}
+func (l *LoggerMock) PrintFatal(err error, properties ...types.AnyMap) {}
 
 func (l *LoggerMock) Write(message []byte) (n int, err error) { return 0, nil }
 

@@ -8,15 +8,15 @@ import (
 )
 
 type Communicator interface {
-	SendStartProcessing(jobID, fileName string) error
-	SendErrorProcessing(jobID, fileName string) error
-	SendSuccessProcessing(jobID string, result types.SuccessResult) error
+	SendStartProcessing(jobID, fileID int, fileName string) error
+	SendErrorProcessing(jobID, fileID int, fileName string) error
+	SendSuccessProcessing(jobID int, result types.SuccessResult) error
 }
 
 type Logger interface {
-	PrintInfo(message string, properties map[string]string)
-	PrintError(err error, properties map[string]string)
-	PrintFatal(err error, properties map[string]string)
+	PrintInfo(message string, properties ...types.AnyMap)
+	PrintError(err error, properties ...types.AnyMap)
+	PrintFatal(err error, properties ...types.AnyMap)
 	Write(message []byte) (n int, err error)
 }
 

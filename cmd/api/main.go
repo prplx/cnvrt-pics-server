@@ -11,11 +11,11 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/joho/godotenv"
 	"github.com/prplx/lighter.pics/internal/imageProcessor"
+	"github.com/prplx/lighter.pics/internal/jsonlog"
 	"github.com/prplx/lighter.pics/internal/processor"
 	"github.com/prplx/lighter.pics/internal/repositories"
 	"github.com/prplx/lighter.pics/internal/router"
 	"github.com/prplx/lighter.pics/internal/services"
-	"github.com/prplx/lighter.pics/pkg/jsonlog"
 )
 
 func main() {

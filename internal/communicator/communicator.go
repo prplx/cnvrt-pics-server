@@ -25,26 +25,33 @@ func NewCommunicator() *Communicator {
 	}
 }
 
-func (c *Communicator) SendStartProcessing(jobID, fileName string) error {
-	return c.client.Trigger("cache-"+jobID, "processing", map[string]string{
-		"event": "started",
-		"file":  fileName,
+func (c *Communicator) SendStartProcessing(jobID, fileID int, fileName string) error {
+	return c.client.Trigger(channelName(jobID), "processing", types.AnyMap{
+		"event":    "started",
+		"fileName": fileName,
+		"fileId":   fileID,
 	})
 }
 
-func (c *Communicator) SendErrorProcessing(jobID, fileName string) error {
-	return c.client.Trigger("cache-"+jobID, "processing", map[string]string{
-		"event": "error",
-		"file":  fileName,
+func (c *Communicator) SendErrorProcessing(jobID, fileID int, fileName string) error {
+	return c.client.Trigger(channelName(jobID), "processing", types.AnyMap{
+		"event":    "error",
+		"fileName": fileName,
+		"fileId":   fileID,
 	})
 }
 
-func (c *Communicator) SendSuccessProcessing(jobID string, result types.SuccessResult) error {
-	return c.client.Trigger("cache-"+jobID, "processing", map[string]string{
+func (c *Communicator) SendSuccessProcessing(jobID int, result types.SuccessResult) error {
+	return c.client.Trigger(channelName(jobID), "processing", types.AnyMap{
 		"event":          "success",
+		"fileId":         result.SourceFileID,
 		"sourceFile":     result.SourceFileName,
 		"targetFile":     result.TargetFileName,
 		"sourceFileSize": strconv.FormatInt(result.SourceFileSize, 10),
 		"targetFileSize": strconv.FormatInt(result.TargetFileSize, 10),
 	})
+}
+
+func channelName(jobID int) string {
+	return "cache-" + strconv.Itoa(jobID)
 }

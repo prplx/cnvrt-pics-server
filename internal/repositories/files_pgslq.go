@@ -10,30 +10,31 @@ type FilesRepo struct {
 	conn *pgx.Conn
 }
 
-func (r *FilesRepo) Create(jobID, name string) error {
-	query := `INSERT INTO files (job_id, name) VALUES ($1, $2);`
-	_, err := r.conn.Exec(context.Background(), query, jobID, name)
-	return err
-}
-
-func (r *FilesRepo) CreateBulk(jobID string, names []string) error {
-	rows := make([][]interface{}, len(names))
-	for idx, name := range names {
-		rows[idx] = []interface{}{jobID, name}
+func (r *FilesRepo) CreateBulk(jobID int, names []string) ([]int, error) {
+	query := `INSERT INTO FILES (job_id, name) VALUES (@jobID, @name) RETURNING id;`
+	batch := &pgx.Batch{}
+	ids := []int{}
+	for _, name := range names {
+		args := pgx.NamedArgs{
+			"jobID": jobID,
+			"name":  name,
+		}
+		batch.Queue(query, args)
 	}
-	_, err := r.conn.CopyFrom(context.Background(), pgx.Identifier{"files"}, []string{"job_id", "name"}, pgx.CopyFromRows(rows))
-	return err
-}
+	result := r.conn.SendBatch(context.Background(), batch)
+	defer result.Close()
 
-func (r *FilesRepo) GetByJobIDAndName(jobID, name string) (*File, error) {
-	query := `SELECT id, job_id, name, created_at FROM files WHERE job_id = $1 AND name = $2 LIMIT 1;`
-	row := r.conn.QueryRow(context.Background(), query, jobID, name)
-	file := &File{}
-	err := row.Scan(&file.ID, &file.JobID, &file.Name, &file.CreatedAt)
-	if err != nil {
-		return nil, err
+	for range names {
+		var id int
+		row := result.QueryRow()
+		err := row.Scan(&id)
+		if err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
 	}
-	return file, nil
+
+	return ids, nil
 }
 
 func NewFilesRepository(conn *pgx.Conn) *FilesRepo {

@@ -11,6 +11,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
+	"github.com/prplx/lighter.pics/internal/helpers"
 	"github.com/prplx/lighter.pics/internal/imageProcessor"
 	"github.com/prplx/lighter.pics/internal/repositories"
 	"github.com/prplx/lighter.pics/internal/services"
@@ -20,6 +21,10 @@ import (
 
 const (
 	UploadDir = "./uploads"
+	format    = "format"
+	quality   = "quality"
+	fileName  = "file_name"
+	fileID    = "file_id"
 )
 
 type Processor struct {
@@ -40,7 +45,7 @@ func NewProcessor(services *services.Services) *Processor {
 
 func (p *Processor) HandleProcessJob(ctx *fiber.Ctx) error {
 	v := validator.New()
-	if validateRequestQueryParams(v, ctx, "format", "quality"); !v.Valid() {
+	if validateRequestQueryParams(v, ctx, format, quality); !v.Valid() {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
 			"errors": v.Errors,
 		})
@@ -48,7 +53,7 @@ func (p *Processor) HandleProcessJob(ctx *fiber.Ctx) error {
 
 	form, err := ctx.MultipartForm()
 	if err != nil {
-		p.logger.PrintError(err, map[string]string{
+		p.logger.PrintError(err, types.AnyMap{
 			"message": "error parsing multipart form",
 		})
 		return ctx.SendStatus(http.StatusBadRequest)
@@ -56,18 +61,18 @@ func (p *Processor) HandleProcessJob(ctx *fiber.Ctx) error {
 
 	jobID, err := p.repositories.Jobs.Create()
 	if err != nil {
-		p.logger.PrintError(err, map[string]string{
+		p.logger.PrintError(err, types.AnyMap{
 			"message": "error creating job",
 		})
 		return ctx.SendStatus(http.StatusInternalServerError)
 	}
 
-	path := fmt.Sprintf(UploadDir+"/%s", jobID)
-	reqFormat := ctx.Query("format")
-	reqQuality := ctx.Query("quality")
+	path := fmt.Sprintf(UploadDir+"/%d", jobID)
+	reqFormat := ctx.Query(format)
+	reqQuality := ctx.Query(quality)
 	quality, err := strconv.Atoi(reqQuality)
 	if err != nil {
-		p.logger.PrintError(err, map[string]string{
+		p.logger.PrintError(err, types.AnyMap{
 			"message": "error parsing quality param",
 		})
 		return ctx.SendStatus(http.StatusBadRequest)
@@ -76,7 +81,7 @@ func (p *Processor) HandleProcessJob(ctx *fiber.Ctx) error {
 	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
 		err := os.MkdirAll(path, os.ModePerm)
 		if err != nil {
-			p.logger.PrintError(err, map[string]string{
+			p.logger.PrintError(err, types.AnyMap{
 				"message": "error creating directory",
 			})
 			return ctx.SendStatus(http.StatusInternalServerError)
@@ -86,9 +91,9 @@ func (p *Processor) HandleProcessJob(ctx *fiber.Ctx) error {
 	fileNames := []string{}
 	for _, fileHeaders := range form.File {
 		for _, fileHeader := range fileHeaders {
-			err = ctx.SaveFile(fileHeader, fmt.Sprintf(UploadDir+"/%s/%s", jobID, fileHeader.Filename))
+			err = ctx.SaveFile(fileHeader, helpers.BuildPath(UploadDir, jobID, fileHeader.Filename))
 			if err != nil {
-				p.logger.PrintError(err, map[string]string{
+				p.logger.PrintError(err, types.AnyMap{
 					"message": "error saving file",
 				})
 				return ctx.SendStatus(http.StatusInternalServerError)
@@ -97,8 +102,9 @@ func (p *Processor) HandleProcessJob(ctx *fiber.Ctx) error {
 		}
 	}
 
-	if err := p.repositories.Files.CreateBulk(jobID, fileNames); err != nil {
-		p.logger.PrintError(err, map[string]string{
+	fileIds, err := p.repositories.Files.CreateBulk(jobID, fileNames)
+	if err != nil {
+		p.logger.PrintError(err, types.AnyMap{
 			"message": "error creating file records",
 		})
 		return ctx.SendStatus(http.StatusInternalServerError)
@@ -111,7 +117,7 @@ func (p *Processor) HandleProcessJob(ctx *fiber.Ctx) error {
 
 	buffers := [][]byte{}
 	for _, file := range files {
-		filePath := fmt.Sprintf(UploadDir+"/%s/%s", jobID, file.Name())
+		filePath := helpers.BuildPath(UploadDir, jobID, file.Name())
 		buffer, err := p.readFile(filePath)
 		if err != nil {
 			return ctx.SendStatus(http.StatusInternalServerError)
@@ -122,7 +128,7 @@ func (p *Processor) HandleProcessJob(ctx *fiber.Ctx) error {
 
 	if len(buffers) == len(files) {
 		for idx, buffer := range buffers {
-			go p.process(jobID, files[idx].Name(), reqFormat, quality, buffer)
+			go p.process(jobID, fileIds[idx], files[idx].Name(), reqFormat, quality, buffer)
 		}
 	}
 
@@ -132,23 +138,24 @@ func (p *Processor) HandleProcessJob(ctx *fiber.Ctx) error {
 }
 
 func (p *Processor) HandleProcessFile(ctx *fiber.Ctx) error {
-	jobID := ctx.Params("jobID")
-	if jobID == "" {
-		p.logger.PrintError(errors.New("jobID param does not exist for the existing job"), map[string]string{})
+	reqJobID := ctx.Params("jobID")
+	if reqJobID == "" {
+		p.logger.PrintError(JobIDIsNotFound)
 		return ctx.SendStatus(http.StatusBadRequest)
 	}
 
 	v := validator.New()
-	if validateRequestQueryParams(v, ctx, "format", "quality", "file_name"); !v.Valid() {
+	if validateRequestQueryParams(v, ctx, format, quality, fileName, fileID); !v.Valid() {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
 			"errors": v.Errors,
 		})
 	}
 
-	reqFormat := ctx.Query("format")
-	reqQuality := ctx.Query("quality")
-	reqFileName := ctx.Query("file_name")
-	filePath := fmt.Sprintf(UploadDir+"/%s/%s", jobID, reqFileName)
+	format := ctx.Query(format)
+	reqQuality := ctx.Query(quality)
+	fileName := ctx.Query(fileName)
+	reqFileID := ctx.Query(fileID)
+	filePath := helpers.BuildPath(UploadDir, reqJobID, fileName)
 	buffer, err := p.readFile(filePath)
 	if err != nil {
 		return ctx.SendStatus(http.StatusInternalServerError)
@@ -156,31 +163,41 @@ func (p *Processor) HandleProcessFile(ctx *fiber.Ctx) error {
 
 	quality, err := strconv.Atoi(reqQuality)
 	if err != nil {
-		p.logger.PrintError(err, map[string]string{
+		p.logger.PrintError(err, types.AnyMap{
 			"message": "error parsing quality param",
 		})
 		return ctx.SendStatus(http.StatusBadRequest)
 	}
 
-	go p.process(jobID, reqFileName, reqFormat, quality, buffer)
+	fileID, err := strconv.Atoi(reqFileID)
+	if err != nil {
+		p.logger.PrintError(err, types.AnyMap{
+			"message": "error parsing file_id param",
+		})
+		return ctx.SendStatus(http.StatusBadRequest)
+	}
+
+	jobID, err := strconv.Atoi(reqJobID)
+	if err != nil {
+		p.logger.PrintError(err, types.AnyMap{
+			"message": "error parsing job_id param",
+		})
+		return ctx.SendStatus(http.StatusBadRequest)
+	}
+
+	go p.process(jobID, fileID, fileName, format, quality, buffer)
 
 	return nil
 }
 
-func (p *Processor) process(jobID, fileName, format string, quality int, buffer []byte) {
-	p.communicator.SendStartProcessing(jobID, fileName)
+func (p *Processor) process(jobID, fileID int, fileName, format string, quality int, buffer []byte) {
+	p.communicator.SendStartProcessing(jobID, fileID, fileName)
 	reportError := func(err error) {
-		p.communicator.SendErrorProcessing(jobID, fileName)
-		p.logger.PrintError(err, map[string]string{
+		p.communicator.SendErrorProcessing(jobID, fileID, fileName)
+		p.logger.PrintError(err, types.AnyMap{
 			"job_id": jobID,
 			"file":   fileName,
 		})
-	}
-
-	file, err := p.repositories.GetByJobIDAndName(jobID, fileName)
-	if err != nil {
-		reportError(err)
-		return
 	}
 
 	converted, err := p.imageProcessor.NewImage(buffer).Convert(imageProcessor.Formats[format])
@@ -196,25 +213,25 @@ func (p *Processor) process(jobID, fileName, format string, quality int, buffer 
 	}
 
 	resultFileName := uuid.NewString() + "." + format
-	writerError := p.imageProcessor.Write(UploadDir+"/"+jobID+"/"+resultFileName, processed)
+	writerError := p.imageProcessor.Write(helpers.BuildPath(UploadDir, jobID, resultFileName), processed)
 	if writerError != nil {
 		reportError(writerError)
 		return
 	}
 
-	sourceInfo, err := os.Stat(UploadDir + "/" + jobID + "/" + fileName)
+	sourceInfo, err := os.Stat(helpers.BuildPath(UploadDir, jobID, fileName))
 	if err != nil {
 		reportError(err)
 		return
 	}
 
-	targetInfo, err := os.Stat(UploadDir + "/" + jobID + "/" + resultFileName)
+	targetInfo, err := os.Stat(helpers.BuildPath(UploadDir, jobID, resultFileName))
 	if err != nil {
 		reportError(err)
 		return
 	}
 
-	_, err = p.repositories.Operations.Create(jobID, file.ID, format, quality, resultFileName, 0, 0)
+	_, err = p.repositories.Operations.Create(jobID, fileID, format, quality, resultFileName, 0, 0)
 	if err != nil {
 		reportError(err)
 		return
@@ -222,14 +239,16 @@ func (p *Processor) process(jobID, fileName, format string, quality int, buffer 
 
 	err = p.communicator.SendSuccessProcessing(jobID, types.SuccessResult{
 		SourceFileName: fileName,
+		SourceFileID:   fileID,
 		TargetFileName: resultFileName,
 		SourceFileSize: sourceInfo.Size(),
 		TargetFileSize: targetInfo.Size(),
 	})
 	if err != nil {
-		p.logger.PrintError(err, map[string]string{
-			"job_id": jobID,
-			"file":   fileName,
+		p.logger.PrintError(err, types.AnyMap{
+			"job_id":    jobID,
+			"file_name": fileName,
+			"file_id":   fileID,
 		})
 	}
 }
@@ -243,7 +262,7 @@ func validateRequestQueryParams(v *validator.Validator, ctx *fiber.Ctx, required
 func (p Processor) readFile(path string) ([]byte, error) {
 	file, err := os.Open(path)
 	if err != nil {
-		p.logger.PrintError(err, map[string]string{
+		p.logger.PrintError(err, types.AnyMap{
 			"message": "error opening file",
 			"path":    path,
 		})
@@ -253,7 +272,7 @@ func (p Processor) readFile(path string) ([]byte, error) {
 
 	buffer, err := io.ReadAll(file)
 	if err != nil {
-		p.logger.PrintError(err, map[string]string{
+		p.logger.PrintError(err, types.AnyMap{
 			"message": "error reading file",
 			"path":    path,
 		})
