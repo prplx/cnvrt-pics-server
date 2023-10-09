@@ -3,17 +3,17 @@ package repositories
 import (
 	"context"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type JobsRepo struct {
-	conn *pgx.Conn
+	pool *pgxpool.Pool
 }
 
 func (r *JobsRepo) Create() (int, error) {
 	var jobID int
 
-	err := r.conn.QueryRow(context.Background(), `
+	err := r.pool.QueryRow(context.Background(), `
 		INSERT INTO jobs (created_at) VALUES (NOW()) RETURNING id;
 	`).Scan(&jobID)
 	if err != nil {
@@ -23,6 +23,6 @@ func (r *JobsRepo) Create() (int, error) {
 	return jobID, nil
 }
 
-func NewJobsRepository(conn *pgx.Conn) *JobsRepo {
-	return &JobsRepo{conn}
+func NewJobsRepository(pool *pgxpool.Pool) *JobsRepo {
+	return &JobsRepo{pool}
 }

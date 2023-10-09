@@ -4,14 +4,30 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/prplx/lighter.pics/internal/models"
 )
 
 type FilesRepo struct {
-	conn *pgx.Conn
+	pool *pgxpool.Pool
+}
+
+func (r *FilesRepo) GetById(id int) (*models.File, error) {
+	query := `SELECT id, name FROM files WHERE id = @id;`
+	args := pgx.NamedArgs{
+		"id": id,
+	}
+	row := r.pool.QueryRow(context.Background(), query, args)
+	file := &models.File{}
+	err := row.Scan(&file.ID, &file.Name)
+	if err != nil {
+		return nil, err
+	}
+	return file, nil
 }
 
 func (r *FilesRepo) CreateBulk(jobID int, names []string) ([]int, error) {
-	query := `INSERT INTO FILES (job_id, name) VALUES (@jobID, @name) RETURNING id;`
+	query := `INSERT INTO files (job_id, name) VALUES (@jobID, @name) RETURNING id;`
 	batch := &pgx.Batch{}
 	ids := []int{}
 	for _, name := range names {
@@ -21,7 +37,7 @@ func (r *FilesRepo) CreateBulk(jobID int, names []string) ([]int, error) {
 		}
 		batch.Queue(query, args)
 	}
-	result := r.conn.SendBatch(context.Background(), batch)
+	result := r.pool.SendBatch(context.Background(), batch)
 	defer result.Close()
 
 	for range names {
@@ -37,6 +53,6 @@ func (r *FilesRepo) CreateBulk(jobID int, names []string) ([]int, error) {
 	return ids, nil
 }
 
-func NewFilesRepository(conn *pgx.Conn) *FilesRepo {
-	return &FilesRepo{conn}
+func NewFilesRepository(pool *pgxpool.Pool) *FilesRepo {
+	return &FilesRepo{pool}
 }

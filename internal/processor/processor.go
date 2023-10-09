@@ -13,6 +13,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/prplx/lighter.pics/internal/helpers"
 	"github.com/prplx/lighter.pics/internal/imageProcessor"
+	"github.com/prplx/lighter.pics/internal/models"
 	"github.com/prplx/lighter.pics/internal/repositories"
 	"github.com/prplx/lighter.pics/internal/services"
 	"github.com/prplx/lighter.pics/internal/types"
@@ -145,7 +146,7 @@ func (p *Processor) HandleProcessFile(ctx *fiber.Ctx) error {
 	}
 
 	v := validator.New()
-	if validateRequestQueryParams(v, ctx, format, quality, fileName, fileID); !v.Valid() {
+	if validateRequestQueryParams(v, ctx, format, quality, fileID); !v.Valid() {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
 			"errors": v.Errors,
 		})
@@ -153,9 +154,22 @@ func (p *Processor) HandleProcessFile(ctx *fiber.Ctx) error {
 
 	format := ctx.Query(format)
 	reqQuality := ctx.Query(quality)
-	fileName := ctx.Query(fileName)
 	reqFileID := ctx.Query(fileID)
-	filePath := helpers.BuildPath(UploadDir, reqJobID, fileName)
+	reqFileIdInt, err := strconv.Atoi(reqFileID)
+	if err != nil {
+		p.logger.PrintError(err, types.AnyMap{
+			"message": "error parsing file_id param",
+		})
+		return ctx.SendStatus(http.StatusBadRequest)
+	}
+	file, err := p.repositories.Files.GetById(reqFileIdInt)
+	if err != nil {
+		p.logger.PrintError(err, types.AnyMap{
+			"message": "error getting file by id",
+		})
+		return ctx.SendStatus(http.StatusInternalServerError)
+	}
+	filePath := helpers.BuildPath(UploadDir, reqJobID, file.Name)
 	buffer, err := p.readFile(filePath)
 	if err != nil {
 		return ctx.SendStatus(http.StatusInternalServerError)
@@ -185,7 +199,7 @@ func (p *Processor) HandleProcessFile(ctx *fiber.Ctx) error {
 		return ctx.SendStatus(http.StatusBadRequest)
 	}
 
-	go p.process(jobID, fileID, fileName, format, quality, buffer)
+	go p.process(jobID, fileID, file.Name, format, quality, buffer)
 
 	return nil
 }
@@ -231,7 +245,7 @@ func (p *Processor) process(jobID, fileID int, fileName, format string, quality 
 		return
 	}
 
-	_, err = p.repositories.Operations.Create(jobID, fileID, format, quality, resultFileName, 0, 0)
+	err = p.repositories.Operations.Create(models.Operation{JobID: jobID, FileID: fileID, Format: format, Quality: quality, FileName: resultFileName})
 	if err != nil {
 		reportError(err)
 		return

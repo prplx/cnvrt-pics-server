@@ -4,24 +4,34 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/prplx/lighter.pics/internal/models"
 )
 
 type OperationsRepo struct {
-	conn *pgx.Conn
+	pool *pgxpool.Pool
 }
 
-func (r *OperationsRepo) Create(jobID, fileID int, format string, quality int, fileName string, width, height int) (string, error) {
-	var fileId string
-	query := `INSERT INTO operations (job_id, file_id, format, quality, fileName, width, height) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id;`
-
-	err := r.conn.QueryRow(context.Background(), query, jobID, fileID, format, quality, fileName, width, height).Scan(&fileId)
-	if err != nil {
-		return "", err
+func (r *OperationsRepo) Create(operation models.Operation) error {
+	query := `INSERT INTO operations (job_id, file_id, format, quality, fileName, width, height) VALUES (@jobID, @fileID, @format, @quality, @fileName, @width, @height);`
+	args := pgx.NamedArgs{
+		"jobID":    operation.JobID,
+		"fileID":   operation.FileID,
+		"format":   operation.Format,
+		"quality":  operation.Quality,
+		"fileName": operation.FileName,
+		"width":    operation.Width,
+		"height":   operation.Height,
 	}
 
-	return fileId, nil
+	_, err := r.pool.Exec(context.Background(), query, args)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func NewOperationsRepository(conn *pgx.Conn) *OperationsRepo {
-	return &OperationsRepo{conn}
+func NewOperationsRepository(pool *pgxpool.Pool) *OperationsRepo {
+	return &OperationsRepo{pool}
 }
