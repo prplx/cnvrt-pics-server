@@ -51,6 +51,11 @@ type Options struct {
 	Quality int
 }
 
+type Dimensions struct {
+	Height int
+	Width  int
+}
+
 type ImageProcessor struct{}
 
 type Image struct {
@@ -80,4 +85,13 @@ func (i Image) Process(options Options) ([]byte, error) {
 
 func (i Image) Convert(t ImageType) ([]byte, error) {
 	return bimg.NewImage(i.buffer).Convert(bimg.ImageType(t))
+}
+
+func (i Image) Resize(width, height int) ([]byte, error) {
+	return bimg.NewImage(i.buffer).Resize(width, height)
+}
+
+func (i Image) Size() Dimensions {
+	size, _ := bimg.NewImage(i.buffer).Size()
+	return Dimensions{size.Height, size.Width}
 }

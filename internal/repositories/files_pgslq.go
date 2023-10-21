@@ -12,7 +12,7 @@ type FilesRepo struct {
 	pool *pgxpool.Pool
 }
 
-func (r *FilesRepo) GetById(id int) (*models.File, error) {
+func (r *FilesRepo) GetById(ctx context.Context, id int) (*models.File, error) {
 	query := `SELECT id, name FROM files WHERE id = @id;`
 	args := pgx.NamedArgs{
 		"id": id,
@@ -26,7 +26,7 @@ func (r *FilesRepo) GetById(id int) (*models.File, error) {
 	return file, nil
 }
 
-func (r *FilesRepo) CreateBulk(jobID int, names []string) ([]int, error) {
+func (r *FilesRepo) CreateBulk(ctx context.Context, jobID int, names []string) ([]int, error) {
 	query := `INSERT INTO files (job_id, name) VALUES (@jobID, @name) RETURNING id;`
 	batch := &pgx.Batch{}
 	ids := []int{}

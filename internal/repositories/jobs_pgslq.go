@@ -10,10 +10,10 @@ type JobsRepo struct {
 	pool *pgxpool.Pool
 }
 
-func (r *JobsRepo) Create() (int, error) {
+func (r *JobsRepo) Create(ctx context.Context) (int, error) {
 	var jobID int
 
-	err := r.pool.QueryRow(context.Background(), `
+	err := r.pool.QueryRow(ctx, `
 		INSERT INTO jobs (created_at) VALUES (NOW()) RETURNING id;
 	`).Scan(&jobID)
 	if err != nil {

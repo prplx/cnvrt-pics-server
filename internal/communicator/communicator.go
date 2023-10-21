@@ -49,6 +49,8 @@ func (c *Communicator) SendSuccessProcessing(jobID int, result types.SuccessResu
 		"targetFile":     result.TargetFileName,
 		"sourceFileSize": strconv.FormatInt(result.SourceFileSize, 10),
 		"targetFileSize": strconv.FormatInt(result.TargetFileSize, 10),
+		"width":          result.Width,
+		"height":         result.Height,
 	})
 }
 

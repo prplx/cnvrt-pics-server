@@ -1,21 +1,25 @@
 package repositories
 
 import (
+	"context"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/prplx/lighter.pics/internal/models"
 )
 
 type Jobs interface {
-	Create() (int, error)
+	Create(ctx context.Context) (int, error)
 }
 
 type Files interface {
-	GetById(id int) (*models.File, error)
-	CreateBulk(jobID int, fileNames []string) ([]int, error)
+	GetById(ctx context.Context, id int) (*models.File, error)
+	CreateBulk(ctx context.Context, jobID int, fileNames []string) ([]int, error)
 }
 
 type Operations interface {
-	Create(operation models.Operation) error
+	Create(ctx context.Context, o models.Operation) (int, error)
+	UnsetLatest(ctx context.Context) error
+	GetByParams(ctx context.Context, o models.Operation) (*models.Operation, error)
 }
 
 type Repositories struct {

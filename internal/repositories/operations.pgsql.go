@@ -12,24 +12,51 @@ type OperationsRepo struct {
 	pool *pgxpool.Pool
 }
 
-func (r *OperationsRepo) Create(operation models.Operation) error {
-	query := `INSERT INTO operations (job_id, file_id, format, quality, fileName, width, height) VALUES (@jobID, @fileID, @format, @quality, @fileName, @width, @height);`
+func (r *OperationsRepo) Create(ctx context.Context, o models.Operation) (int, error) {
+	var operationID int
+	query := `INSERT INTO operations (job_id, file_id, format, quality, fileName, width, height, latest) VALUES (@jobID, @fileID, @format, @quality, @fileName, @width, @height, @latest) RETURNING id;`
 	args := pgx.NamedArgs{
-		"jobID":    operation.JobID,
-		"fileID":   operation.FileID,
-		"format":   operation.Format,
-		"quality":  operation.Quality,
-		"fileName": operation.FileName,
-		"width":    operation.Width,
-		"height":   operation.Height,
+		"jobID":    o.JobID,
+		"fileID":   o.FileID,
+		"format":   o.Format,
+		"quality":  o.Quality,
+		"fileName": o.FileName,
+		"width":    o.Width,
+		"height":   o.Height,
+		"latest":   true,
 	}
 
-	_, err := r.pool.Exec(context.Background(), query, args)
+	err := r.pool.QueryRow(ctx, query, args).Scan(&operationID)
+	if err != nil {
+		return 0, err
+	}
+
+	return operationID, nil
+}
+
+func (r *OperationsRepo) UnsetLatest(ctx context.Context) error {
+	query := `UPDATE operations SET latest = false WHERE latest = true;`
+
+	_, err := r.pool.Exec(ctx, query)
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (r *OperationsRepo) GetByParams(ctx context.Context, o models.Operation) (*models.Operation, error) {
+	query := `SELECT id, filename FROM operations WHERE job_id = $1 AND file_id = $2 AND format = $3 AND quality = $4 AND width = $5 AND height = $6;`
+
+	err := r.pool.QueryRow(ctx, query, o.JobID, o.FileID, o.Format, o.Quality, o.Width, o.Height).Scan(&o.ID, &o.FileName)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &o, nil
 }
 
 func NewOperationsRepository(pool *pgxpool.Pool) *OperationsRepo {

@@ -41,7 +41,7 @@ db/migrate_up:
 	migrate -path=./migrations -database=${DB_DSN} up
 
 db/migrate_down:
-	migrate -path=./migrations -database=${DB_DSN} down
+	migrate -path=./migrations -database=${DB_DSN} down $(n)
 
 db/migrate_force:
 	migrate -path=./migrations -database=${DB_DSN} force $(version)

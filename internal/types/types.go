@@ -6,6 +6,8 @@ type SuccessResult struct {
 	TargetFileName string
 	SourceFileSize int64
 	TargetFileSize int64
+	Width          int
+	Height         int
 }
 
 type AnyMap map[string]any
