@@ -8,6 +8,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
+	"github.com/prplx/lighter.pics/internal/communicator"
 	"github.com/prplx/lighter.pics/internal/imageProcessor"
 	"github.com/prplx/lighter.pics/internal/jsonlog"
 	"github.com/prplx/lighter.pics/internal/pg"
@@ -29,16 +30,20 @@ func main() {
 	fiberApp := fiber.New(fiber.Config{
 		BodyLimit: 20 * 1024 * 1024,
 	})
-	fiberApp.Static("/uploads", "./uploads")
+	fiberApp.Static("/uploads", "./uploads", fiber.Static{
+		Download: true,
+	})
 	fiberApp.Use(cors.New(cors.Config{
 		AllowOrigins: "http://localhost:3000",
 		AllowHeaders: "Origin, Content-Type, Accept",
+		AllowMethods: "GET, POST, PUT, DELETE, OPTIONS",
 	}))
 
 	services := services.NewServices(services.Deps{
 		Logger:         jsonlog.NewLogger(os.Stdout, jsonlog.LevelInfo),
 		Repositories:   *repositories.NewRepositories(db.Pool),
 		ImageProcessor: imageProcessor.NewImageProcessor(),
+		Communicator:   communicator.NewCommunicator(),
 	})
 	processor := processor.NewProcessor(services)
 	router.Register(fiberApp, processor)

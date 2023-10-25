@@ -18,7 +18,6 @@ type Files interface {
 
 type Operations interface {
 	Create(ctx context.Context, o models.Operation) (int, error)
-	UnsetLatest(ctx context.Context) error
 	GetByParams(ctx context.Context, o models.Operation) (*models.Operation, error)
 }
 

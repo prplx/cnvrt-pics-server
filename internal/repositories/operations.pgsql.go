@@ -14,7 +14,7 @@ type OperationsRepo struct {
 
 func (r *OperationsRepo) Create(ctx context.Context, o models.Operation) (int, error) {
 	var operationID int
-	query := `INSERT INTO operations (job_id, file_id, format, quality, fileName, width, height, latest) VALUES (@jobID, @fileID, @format, @quality, @fileName, @width, @height, @latest) RETURNING id;`
+	query := `INSERT INTO operations (job_id, file_id, format, quality, fileName, width, height) VALUES (@jobID, @fileID, @format, @quality, @fileName, @width, @height) RETURNING id;`
 	args := pgx.NamedArgs{
 		"jobID":    o.JobID,
 		"fileID":   o.FileID,
@@ -23,7 +23,6 @@ func (r *OperationsRepo) Create(ctx context.Context, o models.Operation) (int, e
 		"fileName": o.FileName,
 		"width":    o.Width,
 		"height":   o.Height,
-		"latest":   true,
 	}
 
 	err := r.pool.QueryRow(ctx, query, args).Scan(&operationID)
@@ -32,17 +31,6 @@ func (r *OperationsRepo) Create(ctx context.Context, o models.Operation) (int, e
 	}
 
 	return operationID, nil
-}
-
-func (r *OperationsRepo) UnsetLatest(ctx context.Context) error {
-	query := `UPDATE operations SET latest = false WHERE latest = true;`
-
-	_, err := r.pool.Exec(ctx, query)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (r *OperationsRepo) GetByParams(ctx context.Context, o models.Operation) (*models.Operation, error) {

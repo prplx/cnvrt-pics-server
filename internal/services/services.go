@@ -1,7 +1,6 @@
 package services
 
 import (
-	"github.com/prplx/lighter.pics/internal/communicator"
 	"github.com/prplx/lighter.pics/internal/imageProcessor"
 	"github.com/prplx/lighter.pics/internal/repositories"
 	"github.com/prplx/lighter.pics/internal/types"
@@ -33,15 +32,16 @@ type Services struct {
 }
 
 type Deps struct {
-	Logger Logger
-	repositories.Repositories
+	Logger         Logger
+	Repositories   repositories.Repositories
 	ImageProcessor ImageProcessor
+	Communicator   Communicator
 }
 
 func NewServices(deps Deps) *Services {
 	return &Services{
 		Logger:         deps.Logger,
-		Communicator:   communicator.NewCommunicator(),
+		Communicator:   deps.Communicator,
 		Repositories:   deps.Repositories,
 		ImageProcessor: deps.ImageProcessor,
 	}

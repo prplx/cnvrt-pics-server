@@ -22,5 +22,4 @@ type Operation struct {
 	Width     int
 	Height    int
 	CreatedAt string
-	Latest    bool
 }

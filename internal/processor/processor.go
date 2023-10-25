@@ -318,11 +318,6 @@ func (p *Processor) process(ctx context.Context, input processInput) {
 
 	operation := models.Operation{JobID: jobID, FileID: fileID, Format: format, Quality: quality, Width: width, Height: height, FileName: resultFileName}
 
-	err = p.repositories.Operations.UnsetLatest(ctx)
-	if err != nil {
-		reportError(errors.Wrap(err, "error unsetting latest operation"))
-		return
-	}
 	_, err = p.repositories.Operations.Create(ctx, operation)
 	if err != nil {
 		reportError(errors.Wrap(err, "error creating operation"))
