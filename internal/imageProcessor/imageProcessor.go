@@ -1,7 +1,17 @@
 package imageProcessor
 
 import (
+	"context"
+	"os"
+
+	"github.com/google/uuid"
 	"github.com/h2non/bimg"
+	"github.com/pkg/errors"
+	"github.com/prplx/lighter.pics/internal/helpers"
+	"github.com/prplx/lighter.pics/internal/models"
+	"github.com/prplx/lighter.pics/internal/repositories"
+	"github.com/prplx/lighter.pics/internal/services"
+	"github.com/prplx/lighter.pics/internal/types"
 )
 
 type ImageType int
@@ -56,21 +66,31 @@ type Dimensions struct {
 	Width  int
 }
 
-type ImageProcessor struct{}
+type ImageProcessor struct {
+	communicator services.Communicator
+	logger       services.Logger
+	repositories *repositories.Repositories
+	config       *types.Config
+}
 
 type Image struct {
 	buffer []byte
 }
 
-func NewImageProcessor() *ImageProcessor {
-	return &ImageProcessor{}
+func NewImageProcessor(config *types.Config, r *repositories.Repositories, c services.Communicator, l services.Logger) *ImageProcessor {
+	return &ImageProcessor{
+		communicator: c,
+		logger:       l,
+		repositories: r,
+		config:       config,
+	}
 }
 
-func (p ImageProcessor) NewImage(buffer []byte) *Image {
+func (p *ImageProcessor) NewImage(buffer []byte) *Image {
 	return &Image{buffer}
 }
 
-func (p ImageProcessor) Write(path string, buf []byte) error {
+func (p *ImageProcessor) Write(path string, buf []byte) error {
 	return bimg.Write(path, buf)
 }
 
@@ -94,4 +114,113 @@ func (i Image) Resize(width, height int) ([]byte, error) {
 func (i Image) Size() Dimensions {
 	size, _ := bimg.NewImage(i.buffer).Size()
 	return Dimensions{size.Height, size.Width}
+}
+
+func (p *ImageProcessor) Process(ctx context.Context, input types.ImageProcessInput) {
+	jobID := input.JobID
+	fileID := input.FileID
+	fileName := input.FileName
+	format := input.Format
+	width := input.Width
+	height := input.Height
+	quality := input.Quality
+	buffer := input.Buffer
+	var resultFileName string
+
+	p.communicator.SendStartProcessing(jobID, fileID, fileName)
+	reportError := func(err error) {
+		p.communicator.SendErrorProcessing(jobID, fileID, fileName)
+		p.logger.PrintError(err, types.AnyMap{
+			"job_id": jobID,
+			"file":   fileName,
+		})
+	}
+
+	possiblyExistingOperation, err := p.repositories.Operations.GetByParams(ctx, models.Operation{
+		JobID:   jobID,
+		FileID:  fileID,
+		Format:  format,
+		Quality: quality,
+		Width:   width,
+		Height:  height,
+	})
+
+	if err != nil {
+		reportError(errors.Wrap(err, "error getting operation by params"))
+		return
+	}
+
+	if possiblyExistingOperation != nil {
+		resultFileName = possiblyExistingOperation.FileName
+	} else {
+		if width != 0 && height != 0 {
+			resized, err := p.NewImage(buffer).Resize(width, height)
+			if err != nil {
+				reportError(err)
+				return
+			}
+
+			buffer = resized
+		} else {
+			dimensions := p.NewImage(buffer).Size()
+			width = dimensions.Width
+			height = dimensions.Height
+		}
+
+		converted, err := p.NewImage(buffer).Convert(Formats[format])
+		if err != nil {
+			reportError(err)
+			return
+		}
+
+		processed, err := p.NewImage(converted).Process(Options{Quality: quality})
+		if err != nil {
+			reportError(err)
+			return
+		}
+
+		resultFileName = uuid.NewString() + "." + format
+		writerError := p.Write(helpers.BuildPath(p.config.Process.UploadDir, jobID, resultFileName), processed)
+		if writerError != nil {
+			reportError(writerError)
+			return
+		}
+	}
+
+	sourceInfo, err := os.Stat(helpers.BuildPath(p.config.Process.UploadDir, jobID, fileName))
+	if err != nil {
+		reportError(err)
+		return
+	}
+
+	targetInfo, err := os.Stat(helpers.BuildPath(p.config.Process.UploadDir, jobID, resultFileName))
+	if err != nil {
+		reportError(errors.Wrap(err, "error getting target file info"))
+		return
+	}
+
+	operation := models.Operation{JobID: jobID, FileID: fileID, Format: format, Quality: quality, Width: width, Height: height, FileName: resultFileName}
+
+	_, err = p.repositories.Operations.Create(ctx, operation)
+	if err != nil {
+		reportError(errors.Wrap(err, "error creating operation"))
+		return
+	}
+
+	err = p.communicator.SendSuccessProcessing(jobID, types.SuccessResult{
+		SourceFileName: fileName,
+		SourceFileID:   fileID,
+		TargetFileName: resultFileName,
+		SourceFileSize: sourceInfo.Size(),
+		TargetFileSize: targetInfo.Size(),
+		Width:          width,
+		Height:         height,
+	})
+	if err != nil {
+		p.logger.PrintError(err, types.AnyMap{
+			"job_id":    jobID,
+			"file_name": fileName,
+			"file_id":   fileID,
+		})
+	}
 }

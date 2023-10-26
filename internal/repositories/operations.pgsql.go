@@ -47,6 +47,22 @@ func (r *OperationsRepo) GetByParams(ctx context.Context, o models.Operation) (*
 	return &o, nil
 }
 
+func (r *OperationsRepo) GetLatestOperation(ctx context.Context, jobID, fileID string) (*models.Operation, error) {
+	query := `SELECT id, filename FROM operations WHERE job_id = $1 AND file_id = $2 AND created_at = (SELECT MAX(created_at) FROM operations WHERE job_id = $1 AND file_id = $2);`
+
+	var o models.Operation
+
+	err := r.pool.QueryRow(ctx, query, jobID, fileID).Scan(&o.ID, &o.FileName)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &o, nil
+}
+
 func NewOperationsRepository(pool *pgxpool.Pool) *OperationsRepo {
 	return &OperationsRepo{pool}
 }

@@ -1,7 +1,8 @@
 package services
 
 import (
-	"github.com/prplx/lighter.pics/internal/imageProcessor"
+	"context"
+
 	"github.com/prplx/lighter.pics/internal/repositories"
 	"github.com/prplx/lighter.pics/internal/types"
 )
@@ -20,22 +21,29 @@ type Logger interface {
 }
 
 type ImageProcessor interface {
-	NewImage(buf []byte) *imageProcessor.Image
-	Write(path string, buf []byte) error
+	Process(ctx context.Context, input types.ImageProcessInput)
+}
+
+type Archiver interface {
+	Archive(jobID int) error
 }
 
 type Services struct {
 	Communicator   Communicator
 	Logger         Logger
-	Repositories   repositories.Repositories
+	Repositories   *repositories.Repositories
 	ImageProcessor ImageProcessor
+	Archiver       Archiver
+	Config         *types.Config
 }
 
 type Deps struct {
 	Logger         Logger
-	Repositories   repositories.Repositories
+	Repositories   *repositories.Repositories
 	ImageProcessor ImageProcessor
 	Communicator   Communicator
+	Archiver       Archiver
+	Config         *types.Config
 }
 
 func NewServices(deps Deps) *Services {
@@ -44,5 +52,7 @@ func NewServices(deps Deps) *Services {
 		Communicator:   deps.Communicator,
 		Repositories:   deps.Repositories,
 		ImageProcessor: deps.ImageProcessor,
+		Archiver:       deps.Archiver,
+		Config:         deps.Config,
 	}
 }

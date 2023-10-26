@@ -19,6 +19,7 @@ type Files interface {
 type Operations interface {
 	Create(ctx context.Context, o models.Operation) (int, error)
 	GetByParams(ctx context.Context, o models.Operation) (*models.Operation, error)
+	GetLatestOperation(ctx context.Context, jobID, fileID string) (*models.Operation, error)
 }
 
 type Repositories struct {

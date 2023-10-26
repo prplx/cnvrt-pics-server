@@ -12,7 +12,7 @@ import (
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/prplx/lighter.pics/internal/processor"
+	"github.com/prplx/lighter.pics/internal/handlers"
 	svc "github.com/prplx/lighter.pics/internal/services"
 	"github.com/prplx/lighter.pics/internal/types"
 	"github.com/spf13/afero"
@@ -74,6 +74,13 @@ var communicator = &CommunicatorMock{}
 var services = svc.Services{
 	Communicator: communicator,
 	Logger:       &LoggerMock{},
+	Config: &types.Config{
+		Process: struct {
+			UploadDir string `yaml:"uploadDir"`
+		}{
+			UploadDir: "./uploads",
+		},
+	},
 }
 
 const (
@@ -113,14 +120,15 @@ func Test_Process(t *testing.T) {
 func setup(t *testing.T) *fiber.App {
 	t.Helper()
 	app := fiber.New()
-	processor := processor.NewProcessor(&services)
-	Register(app, processor)
+	handlers := handlers.NewHandlers(&services)
+
+	Register(app, handlers)
 	return app
 }
 
 func cleanUp(t *testing.T) {
 	t.Helper()
-	os.RemoveAll(processor.UploadDir)
+	os.RemoveAll(services.Config.Process.UploadDir)
 	communicator.Reset()
 }
 

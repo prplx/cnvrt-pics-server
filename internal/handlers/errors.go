@@ -1,4 +1,4 @@
-package processor
+package handlers
 
 import "github.com/pkg/errors"
 

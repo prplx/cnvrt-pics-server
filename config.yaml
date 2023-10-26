@@ -1,0 +1,9 @@
+server:
+  allowOrigins: http://localhost:3000,
+  allowHeaders: Origin, Content-Type, Accept,
+  allowMethods: GET, POST, PUT, DELETE, OPTIONS,
+  bodyLimit: 20
+  host: 127.0.0.1
+  port: 3001
+process:
+  uploadDir: ./uploads

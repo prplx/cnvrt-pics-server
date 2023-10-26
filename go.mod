@@ -12,6 +12,7 @@ require (
 	github.com/pusher/pusher-http-go/v5 v5.1.1
 	github.com/spf13/afero v1.9.5
 	github.com/stretchr/testify v1.8.4
+	gopkg.in/yaml.v2 v2.2.2
 )
 
 require (
