@@ -2,8 +2,7 @@ package pg
 
 import (
 	"context"
-	"fmt"
-	"os"
+	"log"
 	"sync"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -22,8 +21,7 @@ func NewPG(ctx context.Context, connString string) *postgres {
 	pgOnce.Do(func() {
 		db, err := pgxpool.New(ctx, connString)
 		if err != nil {
-			fmt.Println("unable to create connection pool: %w", err)
-			os.Exit(1)
+			log.Fatal("unable to create connection pool: %w", err)
 		}
 
 		pgInstance = &postgres{db}

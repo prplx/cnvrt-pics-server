@@ -1,6 +1,7 @@
 package config
 
 import (
+	"flag"
 	"os"
 
 	"github.com/prplx/lighter.pics/internal/types"
@@ -21,6 +22,9 @@ func NewConfig(configPath string) (*types.Config, error) {
 	if err := d.Decode(&config); err != nil {
 		return nil, err
 	}
+
+	flag.StringVar(&config.DB.DSN, "db-dsn", "", "Database DSN")
+	flag.StringVar(&config.Env, "env", "development", "Environment")
 
 	return config, nil
 

@@ -8,7 +8,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/joho/godotenv"
 	"github.com/prplx/lighter.pics/internal/archiver"
 	"github.com/prplx/lighter.pics/internal/communicator"
 	"github.com/prplx/lighter.pics/internal/config"
@@ -22,17 +21,12 @@ import (
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-
 	config, err := config.NewConfig("./config.yaml")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	db := pg.NewPG(context.Background(), os.Getenv("DB_DSN"))
+	db := pg.NewPG(context.Background(), config.DB.DSN)
 	defer db.Close()
 
 	fiberApp := fiber.New(fiber.Config{
@@ -49,7 +43,7 @@ func main() {
 
 	logger := jsonlog.NewLogger(os.Stdout, jsonlog.LevelInfo)
 	repositories := repositories.NewRepositories(db.Pool)
-	communicator := communicator.NewCommunicator()
+	communicator := communicator.NewCommunicator(config)
 	archiver := archiver.NewArchiver(repositories, logger, communicator)
 	imageProcessor := imageProcessor.NewImageProcessor(config, repositories, communicator, logger)
 

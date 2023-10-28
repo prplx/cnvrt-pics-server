@@ -1,6 +1,7 @@
 package types
 
 type Config struct {
+	Env    string
 	Server struct {
 		AllowOrigins string `yaml:"allowOrigins"`
 		AllowHeaders string `yaml:"allowHeaders"`
@@ -11,6 +12,15 @@ type Config struct {
 	}
 	Process struct {
 		UploadDir string `yaml:"uploadDir"`
+	}
+	DB struct {
+		DSN string
+	}
+	Pusher struct {
+		AppID   string
+		Key     string
+		Secret  string
+		Cluster string
 	}
 }
 

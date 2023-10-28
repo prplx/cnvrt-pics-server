@@ -7,7 +7,6 @@ require (
 	github.com/google/uuid v1.3.1
 	github.com/h2non/bimg v1.1.9
 	github.com/jackc/pgx/v5 v5.4.3
-	github.com/joho/godotenv v1.5.1
 	github.com/pkg/errors v0.9.1
 	github.com/pusher/pusher-http-go/v5 v5.1.1
 	github.com/spf13/afero v1.9.5

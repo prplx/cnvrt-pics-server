@@ -11,12 +11,12 @@ type Communicator struct {
 	client pusher.Client
 }
 
-func NewCommunicator() *Communicator {
+func NewCommunicator(config *types.Config) *Communicator {
 	client := pusher.Client{
-		AppID:   "1528434",
-		Key:     "238e350521ef2c91b881",
-		Secret:  "ada76c58d004a6db5abe",
-		Cluster: "eu",
+		AppID:   config.Pusher.AppID,
+		Key:     config.Pusher.Key,
+		Secret:  config.Pusher.Secret,
+		Cluster: config.Pusher.Cluster,
 		Secure:  true,
 	}
 
