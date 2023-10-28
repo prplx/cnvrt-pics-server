@@ -53,6 +53,41 @@ func (r *FilesRepo) CreateBulk(ctx context.Context, jobID int, names []string) (
 	return ids, nil
 }
 
+func (r *FilesRepo) GetWithLatestOperationsByJobID(jobID int) ([]*models.File, error) {
+	query := `
+		SELECT f.id, f.name, o.filename, o.format
+		FROM files f
+		INNER JOIN operations o ON o.file_id = f.id
+		WHERE f.job_id = @jobID
+		AND o.created_at = (
+			SELECT MAX(created_at)
+			FROM operations
+			WHERE file_id = f.id
+		)
+		ORDER BY f.id ASC;
+	`
+	args := pgx.NamedArgs{
+		"jobID": jobID,
+	}
+	rows, err := r.pool.Query(context.Background(), query, args)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	files := []*models.File{}
+	for rows.Next() {
+		file := &models.File{LatestOperation: &models.Operation{}}
+		err := rows.Scan(&file.ID, &file.Name, &file.LatestOperation.FileName, &file.LatestOperation.Format)
+		if err != nil {
+			return nil, err
+		}
+		files = append(files, file)
+	}
+
+	return files, nil
+}
+
 func NewFilesRepository(pool *pgxpool.Pool) *FilesRepo {
 	return &FilesRepo{pool}
 }

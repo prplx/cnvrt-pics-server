@@ -1,10 +1,11 @@
 package models
 
 type File struct {
-	ID        int
-	JobID     int
-	Name      string
-	CreatedAt string
+	ID              int
+	JobID           int
+	Name            string
+	CreatedAt       string
+	LatestOperation *Operation
 }
 
 type Job struct {

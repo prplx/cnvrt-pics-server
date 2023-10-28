@@ -100,7 +100,7 @@ func (h *Handlers) HandleProcessJob(ctx *fiber.Ctx) error {
 
 	if len(buffers) == len(files) {
 		for idx, buffer := range buffers {
-			go h.services.ImageProcessor.Process(context.Background(), types.ImageProcessInput{JobID: jobID, FileID: fileIds[idx], FileName: files[idx].Name(), Format: reqFormat, Quality: quality, Buffer: buffer})
+			go h.services.Processor.Process(context.Background(), types.ImageProcessInput{JobID: jobID, FileID: fileIds[idx], FileName: files[idx].Name(), Format: reqFormat, Quality: quality, Buffer: buffer})
 		}
 	}
 
@@ -187,7 +187,7 @@ func (h *Handlers) HandleProcessFile(ctx *fiber.Ctx) error {
 		return ctx.SendStatus(http.StatusBadRequest)
 	}
 
-	go h.services.ImageProcessor.Process(context.Background(), types.ImageProcessInput{JobID: jobID, FileID: fileID, FileName: file.Name, Format: format, Quality: quality, Width: reqFileWidth, Height: reqFileHeight, Buffer: buffer})
+	go h.services.Processor.Process(context.Background(), types.ImageProcessInput{JobID: jobID, FileID: fileID, FileName: file.Name, Format: format, Quality: quality, Width: reqFileWidth, Height: reqFileHeight, Buffer: buffer})
 
 	return nil
 }

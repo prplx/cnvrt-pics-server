@@ -1,4 +1,4 @@
-package imageProcessor
+package processor
 
 import (
 	"context"
@@ -77,7 +77,7 @@ type Image struct {
 	buffer []byte
 }
 
-func NewImageProcessor(config *types.Config, r *repositories.Repositories, c services.Communicator, l services.Logger) *ImageProcessor {
+func NewProcessor(config *types.Config, r *repositories.Repositories, c services.Communicator, l services.Logger) *ImageProcessor {
 	return &ImageProcessor{
 		communicator: c,
 		logger:       l,

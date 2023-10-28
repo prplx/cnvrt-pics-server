@@ -12,9 +12,9 @@ import (
 	"github.com/prplx/lighter.pics/internal/communicator"
 	"github.com/prplx/lighter.pics/internal/config"
 	"github.com/prplx/lighter.pics/internal/handlers"
-	"github.com/prplx/lighter.pics/internal/imageProcessor"
 	"github.com/prplx/lighter.pics/internal/jsonlog"
 	"github.com/prplx/lighter.pics/internal/pg"
+	"github.com/prplx/lighter.pics/internal/processor"
 	"github.com/prplx/lighter.pics/internal/repositories"
 	"github.com/prplx/lighter.pics/internal/router"
 	"github.com/prplx/lighter.pics/internal/services"
@@ -44,16 +44,16 @@ func main() {
 	logger := jsonlog.NewLogger(os.Stdout, jsonlog.LevelInfo)
 	repositories := repositories.NewRepositories(db.Pool)
 	communicator := communicator.NewCommunicator(config)
-	archiver := archiver.NewArchiver(repositories, logger, communicator)
-	imageProcessor := imageProcessor.NewImageProcessor(config, repositories, communicator, logger)
+	archiver := archiver.NewArchiver(config, repositories, logger, communicator)
+	processor := processor.NewProcessor(config, repositories, communicator, logger)
 
 	services := services.NewServices(services.Deps{
-		Logger:         logger,
-		Repositories:   repositories,
-		ImageProcessor: imageProcessor,
-		Communicator:   communicator,
-		Archiver:       archiver,
-		Config:         config,
+		Logger:       logger,
+		Repositories: repositories,
+		Processor:    processor,
+		Communicator: communicator,
+		Archiver:     archiver,
+		Config:       config,
 	})
 
 	handlers := handlers.NewHandlers(services)

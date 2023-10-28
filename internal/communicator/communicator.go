@@ -54,6 +54,25 @@ func (c *Communicator) SendSuccessProcessing(jobID int, result types.SuccessResu
 	})
 }
 
+func (c *Communicator) SendStartArchiving(jobID int) error {
+	return c.client.Trigger(channelName(jobID), "archiving", types.AnyMap{
+		"event": "started",
+	})
+}
+
+func (c *Communicator) SendErrorArchiving(jobID int) error {
+	return c.client.Trigger(channelName(jobID), "archiving", types.AnyMap{
+		"event": "error",
+	})
+}
+
+func (c *Communicator) SendSuccessArchiving(jobID int, path string) error {
+	return c.client.Trigger(channelName(jobID), "archiving", types.AnyMap{
+		"event": "success",
+		"path":  path,
+	})
+}
+
 func channelName(jobID int) string {
 	return "cache-" + strconv.Itoa(jobID)
 }

@@ -25,6 +25,11 @@ func NewConfig(configPath string) (*types.Config, error) {
 
 	flag.StringVar(&config.DB.DSN, "db-dsn", "", "Database DSN")
 	flag.StringVar(&config.Env, "env", "development", "Environment")
+	flag.StringVar(&config.Pusher.AppID, "pusher-app-id", "", "Pusher App ID")
+	flag.StringVar(&config.Pusher.Key, "pusher-key", "", "Pusher Key")
+	flag.StringVar(&config.Pusher.Secret, "pusher-secret", "", "Pusher Secret")
+	flag.StringVar(&config.Pusher.Cluster, "pusher-cluster", "", "Pusher Cluster")
+	flag.Parse()
 
 	return config, nil
 

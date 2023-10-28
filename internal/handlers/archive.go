@@ -22,5 +22,7 @@ func (h *Handlers) HandleArchiveJob(ctx *fiber.Ctx) error {
 		return ctx.SendStatus(http.StatusInternalServerError)
 	}
 
-	return h.services.Archiver.Archive(jobID)
+	go h.services.Archiver.Archive(jobID)
+
+	return ctx.SendStatus(http.StatusOK)
 }

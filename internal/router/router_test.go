@@ -47,6 +47,18 @@ func (c *CommunicatorMock) SendSuccessProcessing(jobID int, result types.Success
 	return nil
 }
 
+func (c *CommunicatorMock) SendStartArchiving(jobID int) error {
+	return nil
+}
+
+func (c *CommunicatorMock) SendErrorArchiving(jobID int) error {
+	return nil
+}
+
+func (c *CommunicatorMock) SendSuccessArchiving(jobID int, path string) error {
+	return nil
+}
+
 func (c *CommunicatorMock) Reset() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
