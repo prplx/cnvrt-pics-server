@@ -18,3 +18,7 @@ func BuildPath(parts ...interface{}) string {
 
 	return filepath.Clean(path.String())
 }
+
+func FileExtension(fileName string) string {
+	return filepath.Ext(fileName)
+}

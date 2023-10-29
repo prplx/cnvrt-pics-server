@@ -50,12 +50,12 @@ func (a *Archiver) Archive(jobID int) error {
 		return errors.Wrap(err, "error getting files with latest operations")
 	}
 
-	files := make([]string, len(filesWithOperaton))
-	for i, file := range filesWithOperaton {
-		files[i] = file.LatestOperation.FileName
+	files := map[string]string{}
+	for _, file := range filesWithOperaton {
+		files[file.Name] = file.LatestOperation.FileName
 	}
 
-	archiveName := fmt.Sprintf("%d.zip", jobID)
+	archiveName := fmt.Sprintf("%s.zip", a.config.App.Name)
 
 	err = zipFiles(archiveName, helpers.BuildPath(a.config.Process.UploadDir, jobID), files)
 	if err != nil {
@@ -73,7 +73,7 @@ func (a *Archiver) Archive(jobID int) error {
 	return nil
 }
 
-func zipFiles(zipFile string, dir string, files []string) error {
+func zipFiles(zipFile string, dir string, files map[string]string) error {
 	newZipFile, err := os.Create(helpers.BuildPath(dir, zipFile))
 	if err != nil {
 		return err
@@ -83,8 +83,8 @@ func zipFiles(zipFile string, dir string, files []string) error {
 	zipWriter := zip.NewWriter(newZipFile)
 	defer zipWriter.Close()
 
-	for _, file := range files {
-		filePath := filepath.Join(dir, file)
+	for srcFile, dstFile := range files {
+		filePath := filepath.Join(dir, dstFile)
 		fileToZip, err := os.Open(filePath)
 		if err != nil {
 			return err
@@ -101,7 +101,7 @@ func zipFiles(zipFile string, dir string, files []string) error {
 			return err
 		}
 
-		header.Name = file
+		header.Name = fmt.Sprintf("%s%s", helpers.FileNameWithoutExtension(srcFile), helpers.FileExtension(dstFile))
 		header.Method = zip.Deflate
 
 		writer, err := zipWriter.CreateHeader(header)

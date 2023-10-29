@@ -22,6 +22,9 @@ type Config struct {
 		Secret  string
 		Cluster string
 	}
+	App struct {
+		Name string
+	}
 }
 
 type ImageProcessInput struct {

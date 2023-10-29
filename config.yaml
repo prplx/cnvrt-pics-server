@@ -7,3 +7,5 @@ server:
   port: 3001
 process:
   uploadDir: ./uploads
+app:
+  name: imagewizard
