@@ -23,6 +23,8 @@ func NewConfig(configPath string) (*types.Config, error) {
 		return nil, err
 	}
 
+	flag.IntVar(&config.Server.Port, "port", 3001, "Port")
+	flag.StringVar(&config.Process.UploadDir, "upload-dir", "./uploads", "Uploads directory")
 	flag.StringVar(&config.DB.DSN, "db-dsn", "", "Database DSN")
 	flag.StringVar(&config.Env, "env", "development", "Environment")
 	flag.StringVar(&config.Pusher.AppID, "pusher-app-id", "", "Pusher App ID")

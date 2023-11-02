@@ -12,7 +12,7 @@ buildWebhook:
 	@go build -o ./cmd/setTelegramWebhookUrl ./cmd/setTelegramWebhookUrl.go
 
 run:
-	@go run ./cmd/api/main.go -env=${ENV} -db-dsn=${DB_DSN} -pusher-app-id=${PUSHER_APP_ID} -pusher-key=${PUSHER_KEY} -pusher-secret=${PUSHER_SECRET} -pusher-cluster=${PUSHER_CLUSTER}
+	@go run ./cmd/api/main.go -db-dsn=${DB_DSN} -pusher-app-id=${PUSHER_APP_ID} -pusher-key=${PUSHER_KEY} -pusher-secret=${PUSHER_SECRET} -pusher-cluster=${PUSHER_CLUSTER}
 
 test:
 	@go test -v ./...

@@ -26,10 +26,10 @@ func (r *FilesRepo) GetById(ctx context.Context, id int) (*models.File, error) {
 	return file, nil
 }
 
-func (r *FilesRepo) CreateBulk(ctx context.Context, jobID int, names []string) ([]int, error) {
-	query := `INSERT INTO files (job_id, name) VALUES (@jobID, @name) RETURNING id;`
+func (r *FilesRepo) CreateBulk(ctx context.Context, jobID int, names []string) ([]models.File, error) {
+	query := `INSERT INTO files (job_id, name) VALUES (@jobID, @name) RETURNING id, name;`
 	batch := &pgx.Batch{}
-	ids := []int{}
+	files := []models.File{}
 	for _, name := range names {
 		args := pgx.NamedArgs{
 			"jobID": jobID,
@@ -41,16 +41,16 @@ func (r *FilesRepo) CreateBulk(ctx context.Context, jobID int, names []string) (
 	defer result.Close()
 
 	for range names {
-		var id int
+		file := models.File{}
 		row := result.QueryRow()
-		err := row.Scan(&id)
+		err := row.Scan(&file.ID, &file.Name)
 		if err != nil {
 			return nil, err
 		}
-		ids = append(ids, id)
+		files = append(files, file)
 	}
 
-	return ids, nil
+	return files, nil
 }
 
 func (r *FilesRepo) GetWithLatestOperationsByJobID(jobID int) ([]*models.File, error) {
