@@ -1,6 +1,6 @@
 module github.com/prplx/lighter.pics
 
-go 1.21.0
+go 1.21
 
 require (
 	github.com/gofiber/fiber/v2 v2.49.1

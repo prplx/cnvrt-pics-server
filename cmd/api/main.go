@@ -21,7 +21,7 @@ import (
 )
 
 func main() {
-	config, err := config.NewConfig("./config.yaml")
+	config, err := config.NewConfig(os.Getenv("CONFIG_PATH"))
 	if err != nil {
 		log.Fatal(err)
 	}

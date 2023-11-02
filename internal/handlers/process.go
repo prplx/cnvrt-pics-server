@@ -74,12 +74,17 @@ func (h *Handlers) HandleProcessJob(ctx *fiber.Ctx) error {
 		}
 	}
 
-	fileIds, err := h.services.Repositories.Files.CreateBulk(context.Background(), jobID, fileNames)
+	dbFiles, err := h.services.Repositories.Files.CreateBulk(context.Background(), jobID, fileNames)
 	if err != nil {
 		h.services.Logger.PrintError(err, types.AnyMap{
 			"message": "error creating file records",
 		})
 		return ctx.SendStatus(http.StatusInternalServerError)
+	}
+
+	fileNameToId := map[string]int{}
+	for _, file := range dbFiles {
+		fileNameToId[file.Name] = file.ID
 	}
 
 	files, err := os.ReadDir(path)
@@ -100,7 +105,9 @@ func (h *Handlers) HandleProcessJob(ctx *fiber.Ctx) error {
 
 	if len(buffers) == len(files) {
 		for idx, buffer := range buffers {
-			go h.services.Processor.Process(context.Background(), types.ImageProcessInput{JobID: jobID, FileID: fileIds[idx], FileName: files[idx].Name(), Format: reqFormat, Quality: quality, Buffer: buffer})
+			name := files[idx].Name()
+			fileId := fileNameToId[name]
+			go h.services.Processor.Process(context.Background(), types.ImageProcessInput{JobID: jobID, FileID: fileId, FileName: name, Format: reqFormat, Quality: quality, Buffer: buffer})
 		}
 	}
 

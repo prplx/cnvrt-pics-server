@@ -13,7 +13,7 @@ type Jobs interface {
 
 type Files interface {
 	GetById(ctx context.Context, id int) (*models.File, error)
-	CreateBulk(ctx context.Context, jobID int, fileNames []string) ([]int, error)
+	CreateBulk(ctx context.Context, jobID int, fileNames []string) ([]models.File, error)
 	GetWithLatestOperationsByJobID(jobID int) ([]*models.File, error)
 }
 
