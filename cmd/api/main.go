@@ -14,7 +14,7 @@ import (
 	"github.com/prplx/lighter.pics/internal/handlers"
 	"github.com/prplx/lighter.pics/internal/jsonlog"
 	"github.com/prplx/lighter.pics/internal/pg"
-	"github.com/prplx/lighter.pics/internal/processor"
+	processor "github.com/prplx/lighter.pics/internal/processor/processorgovips"
 	"github.com/prplx/lighter.pics/internal/repositories"
 	"github.com/prplx/lighter.pics/internal/router"
 	"github.com/prplx/lighter.pics/internal/services"
@@ -26,7 +26,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	db := pg.NewPG(context.Background(), config.DB.DSN)
+	ctx := context.Background()
+	db := pg.NewPG(ctx, config.DB.DSN)
+	if err := db.Ping(ctx); err != nil {
+		log.Fatal(err)
+	}
 	defer db.Close()
 
 	fiberApp := fiber.New(fiber.Config{

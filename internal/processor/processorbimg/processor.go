@@ -1,4 +1,4 @@
-package processor
+package processorbimg
 
 import (
 	"context"
@@ -66,7 +66,7 @@ type Dimensions struct {
 	Width  int
 }
 
-type ImageProcessor struct {
+type Processor struct {
 	communicator services.Communicator
 	logger       services.Logger
 	repositories *repositories.Repositories
@@ -77,8 +77,8 @@ type Image struct {
 	buffer []byte
 }
 
-func NewProcessor(config *types.Config, r *repositories.Repositories, c services.Communicator, l services.Logger) *ImageProcessor {
-	return &ImageProcessor{
+func NewProcessor(config *types.Config, r *repositories.Repositories, c services.Communicator, l services.Logger) *Processor {
+	return &Processor{
 		communicator: c,
 		logger:       l,
 		repositories: r,
@@ -86,11 +86,11 @@ func NewProcessor(config *types.Config, r *repositories.Repositories, c services
 	}
 }
 
-func (p *ImageProcessor) NewImage(buffer []byte) *Image {
+func (p *Processor) NewImage(buffer []byte) *Image {
 	return &Image{buffer}
 }
 
-func (p *ImageProcessor) Write(path string, buf []byte) error {
+func (p *Processor) Write(path string, buf []byte) error {
 	return bimg.Write(path, buf)
 }
 
@@ -116,7 +116,7 @@ func (i Image) Size() Dimensions {
 	return Dimensions{size.Height, size.Width}
 }
 
-func (p *ImageProcessor) Process(ctx context.Context, input types.ImageProcessInput) {
+func (p *Processor) Process(ctx context.Context, input types.ImageProcessInput) {
 	jobID := input.JobID
 	fileID := input.FileID
 	fileName := input.FileName
