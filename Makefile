@@ -1,6 +1,6 @@
 include .envrc
 
-.PHONY: run run/live test audit tidy db/migrate_up db/migrate_down db/migrate_force db/migrate_create
+.PHONY: run run/live test audit tidy db/migrate_up db/migrate_down db/migrate_force db/migrate_create docker/build docker/run
 
 MAIN_PACKAGE_PATH := ./cmd/api
 BINARY_NAME := lighter-pics
@@ -48,5 +48,10 @@ db/migrate_force:
 db/migrate_create:
 	migrate create -seq -ext=.sql -dir=./migrations $(name)
 
+docker/build:
+	docker build -t imagewizard .
+
+docker/run:
+	docker run -e CONFIG_PATH="/app/config.yaml" -e DB_DSN=${DB_DSN} -e ENV="production" -e PUSHER_APP_ID=${PUSHER_APP_ID} -e PUSHER_KEY=${PUSHER_KEY} -e PUSHER_SECRET=${PUSHER_SECRET} -e PUSHER_CLUSTER=${PUSHER_CLUSTER} -e PORT=3001 -e UPLOAD_DIR="/app/uploads" -p 3001:3001 imagewizard
 
 

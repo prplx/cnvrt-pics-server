@@ -23,7 +23,8 @@ type Config struct {
 		Cluster string
 	}
 	App struct {
-		Name string
+		Name            string
+		JobFlushTimeout int
 	}
 }
 

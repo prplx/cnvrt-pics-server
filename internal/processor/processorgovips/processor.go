@@ -32,11 +32,6 @@ var Formats = map[string]vips.ImageType{
 	"avif": vips.ImageTypeAVIF,
 }
 
-func init() {
-	vips.Startup(nil)
-	// defer vips.Shutdown()
-}
-
 func NewProcessor(config *types.Config, r *repositories.Repositories, c services.Communicator, l services.Logger) *Processor {
 	return &Processor{
 		communicator: c,
@@ -44,6 +39,14 @@ func NewProcessor(config *types.Config, r *repositories.Repositories, c services
 		repositories: r,
 		config:       config,
 	}
+}
+
+func (p *Processor) Startup() {
+	vips.Startup(nil)
+}
+
+func (p *Processor) Shutdown() {
+	vips.Shutdown()
 }
 
 func (p *Processor) Process(ctx context.Context, input types.ImageProcessInput) {
@@ -85,25 +88,27 @@ func (p *Processor) Process(ctx context.Context, input types.ImageProcessInput) 
 		resultFileName = possiblyExistingOperation.FileName
 	} else {
 		image, err := vips.NewImageFromBuffer(buffer)
-		if width != 0 && height != 0 {
-			if err != nil {
-				reportError(errors.Wrap(err, "error creating image from buffer"))
-				return
-			}
+		if err != nil {
+			reportError(errors.Wrap(err, "error creating image from buffer"))
+			return
+		}
 
-			if err := image.Resize(float64(width/height), vips.KernelLanczos3); err != nil {
+		originalWidth := image.Width()
+
+		if width != 0 && height != 0 {
+			if err := image.Resize(float64(width)/float64(originalWidth), vips.KernelLanczos3); err != nil {
 				reportError(errors.Wrap(err, "error resizing image"))
 				return
 			}
-
 		} else {
 			width = image.Width()
 			height = image.Height()
 		}
 
 		imageBytes, _, err := image.Export(&vips.ExportParams{
-			Format:  Formats[format],
-			Quality: quality,
+			Format:        Formats[format],
+			Quality:       quality,
+			StripMetadata: true,
 		})
 		if err != nil {
 			reportError(errors.Wrap(err, "error exporting image"))

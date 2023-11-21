@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"time"
 
 	"github.com/prplx/lighter.pics/internal/repositories"
 	"github.com/prplx/lighter.pics/internal/types"
@@ -24,11 +25,17 @@ type Logger interface {
 }
 
 type Processor interface {
+	Startup()
 	Process(ctx context.Context, input types.ImageProcessInput)
+	Shutdown()
 }
 
 type Archiver interface {
 	Archive(jobID int) error
+}
+
+type Scheduler interface {
+	Schedule(jobID int, timeout time.Duration) error
 }
 
 type Services struct {
@@ -38,6 +45,7 @@ type Services struct {
 	Processor    Processor
 	Archiver     Archiver
 	Config       *types.Config
+	Scheduler    Scheduler
 }
 
 type Deps struct {
@@ -47,6 +55,7 @@ type Deps struct {
 	Communicator Communicator
 	Archiver     Archiver
 	Config       *types.Config
+	Scheduler    Scheduler
 }
 
 func NewServices(deps Deps) *Services {
@@ -57,5 +66,6 @@ func NewServices(deps Deps) *Services {
 		Processor:    deps.Processor,
 		Archiver:     deps.Archiver,
 		Config:       deps.Config,
+		Scheduler:    deps.Scheduler,
 	}
 }

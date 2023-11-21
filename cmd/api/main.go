@@ -17,6 +17,7 @@ import (
 	processor "github.com/prplx/lighter.pics/internal/processor/processorgovips"
 	"github.com/prplx/lighter.pics/internal/repositories"
 	"github.com/prplx/lighter.pics/internal/router"
+	"github.com/prplx/lighter.pics/internal/scheduler"
 	"github.com/prplx/lighter.pics/internal/services"
 )
 
@@ -50,12 +51,16 @@ func main() {
 	communicator := communicator.NewCommunicator(config)
 	archiver := archiver.NewArchiver(config, repositories, logger, communicator)
 	processor := processor.NewProcessor(config, repositories, communicator, logger)
+	scheduler := scheduler.NewScheduler(config, repositories, logger)
+	processor.Startup()
+	defer processor.Shutdown()
 
 	services := services.NewServices(services.Deps{
 		Logger:       logger,
 		Repositories: repositories,
 		Processor:    processor,
 		Communicator: communicator,
+		Scheduler:    scheduler,
 		Archiver:     archiver,
 		Config:       config,
 	})
