@@ -1,9 +1,11 @@
 package scheduler
 
 import (
+	"os"
 	"sync"
 	"time"
 
+	"github.com/prplx/lighter.pics/internal/helpers"
 	"github.com/prplx/lighter.pics/internal/repositories"
 	"github.com/prplx/lighter.pics/internal/services"
 	"github.com/prplx/lighter.pics/internal/types"
@@ -22,10 +24,11 @@ func NewScheduler(c *types.Config, r *repositories.Repositories, l services.Logg
 		timers:       make(map[int]*time.Timer),
 		repositories: r,
 		config:       c,
+		logger:       l,
 	}
 }
 
-func (s *Scheduler) Schedule(jobID int, timeout time.Duration) error {
+func (s *Scheduler) ScheduleFlush(jobID int, timeout time.Duration) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -42,9 +45,24 @@ func (s *Scheduler) Schedule(jobID int, timeout time.Duration) error {
 			"job_id": jobID,
 		})
 
-		// DB stuf goes here
+		dir := helpers.BuildPath(s.config.Process.UploadDir, jobID)
+		if _, err := os.Stat(dir); !os.IsNotExist(err) {
+			err := os.RemoveAll(dir)
+			if err != nil {
+				s.logger.PrintInfo("Error while flushing the job", types.AnyMap{
+					"job_id": jobID,
+				})
+
+			}
+		}
 
 		delete(s.timers, jobID)
+
+		s.logger.PrintInfo("Sucessfully flushed the job", types.AnyMap{
+			"job_id": jobID,
+		})
+
+		// Notify the client through the communicator so that the client can update the UI
 	})
 
 	return nil

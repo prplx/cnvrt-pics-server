@@ -23,8 +23,8 @@ type Config struct {
 		Cluster string
 	}
 	App struct {
-		Name            string
-		JobFlushTimeout int
+		Name            string `yaml:"name"`
+		JobFlushTimeout int    `yaml:"jobFlushTimeout"`
 	}
 }
 

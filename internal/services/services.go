@@ -35,7 +35,7 @@ type Archiver interface {
 }
 
 type Scheduler interface {
-	Schedule(jobID int, timeout time.Duration) error
+	ScheduleFlush(jobID int, timeout time.Duration) error
 }
 
 type Services struct {

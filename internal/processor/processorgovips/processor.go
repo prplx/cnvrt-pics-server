@@ -3,6 +3,7 @@ package processorgovips
 import (
 	"context"
 	"os"
+	"time"
 
 	"github.com/davidbyttow/govips/v2/vips"
 	"github.com/google/uuid"
@@ -19,6 +20,7 @@ type Processor struct {
 	logger       services.Logger
 	repositories *repositories.Repositories
 	config       *types.Config
+	scheduler    services.Scheduler
 }
 
 var Formats = map[string]vips.ImageType{
@@ -32,12 +34,13 @@ var Formats = map[string]vips.ImageType{
 	"avif": vips.ImageTypeAVIF,
 }
 
-func NewProcessor(config *types.Config, r *repositories.Repositories, c services.Communicator, l services.Logger) *Processor {
+func NewProcessor(config *types.Config, r *repositories.Repositories, c services.Communicator, l services.Logger, s services.Scheduler) *Processor {
 	return &Processor{
 		communicator: c,
 		logger:       l,
 		repositories: r,
 		config:       config,
+		scheduler:    s,
 	}
 }
 
@@ -59,6 +62,7 @@ func (p *Processor) Process(ctx context.Context, input types.ImageProcessInput) 
 	quality := input.Quality
 	buffer := input.Buffer
 	var resultFileName string
+	var existingJobFileExists bool
 
 	reportError := func(err error) {
 		p.communicator.SendErrorProcessing(jobID, fileID, fileName)
@@ -85,6 +89,12 @@ func (p *Processor) Process(ctx context.Context, input types.ImageProcessInput) 
 	}
 
 	if possiblyExistingOperation != nil {
+		if _, err := os.Stat(helpers.BuildPath(p.config.Process.UploadDir, jobID, possiblyExistingOperation.FileName)); !os.IsNotExist(err) {
+			existingJobFileExists = true
+		}
+	}
+
+	if existingJobFileExists {
 		resultFileName = possiblyExistingOperation.FileName
 	} else {
 		image, err := vips.NewImageFromBuffer(buffer)
@@ -123,6 +133,7 @@ func (p *Processor) Process(ctx context.Context, input types.ImageProcessInput) 
 			return
 		}
 
+		p.scheduler.ScheduleFlush(jobID, time.Duration(p.config.App.JobFlushTimeout)*time.Second)
 	}
 
 	sourceInfo, err := os.Stat(helpers.BuildPath(p.config.Process.UploadDir, jobID, fileName))

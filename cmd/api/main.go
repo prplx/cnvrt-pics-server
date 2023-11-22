@@ -50,8 +50,9 @@ func main() {
 	repositories := repositories.NewRepositories(db.Pool)
 	communicator := communicator.NewCommunicator(config)
 	archiver := archiver.NewArchiver(config, repositories, logger, communicator)
-	processor := processor.NewProcessor(config, repositories, communicator, logger)
 	scheduler := scheduler.NewScheduler(config, repositories, logger)
+	processor := processor.NewProcessor(config, repositories, communicator, logger, scheduler)
+
 	processor.Startup()
 	defer processor.Shutdown()
 
