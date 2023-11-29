@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/prplx/lighter.pics/internal/helpers"
-	"github.com/prplx/lighter.pics/internal/repositories"
 	"github.com/prplx/lighter.pics/internal/services"
 	"github.com/prplx/lighter.pics/internal/types"
 )
@@ -14,17 +13,17 @@ import (
 type Scheduler struct {
 	mu           sync.Mutex
 	timers       map[int]*time.Timer
-	repositories *repositories.Repositories
 	config       *types.Config
 	logger       services.Logger
+	communitator services.Communicator
 }
 
-func NewScheduler(c *types.Config, r *repositories.Repositories, l services.Logger) *Scheduler {
+func NewScheduler(config *types.Config, l services.Logger, c services.Communicator) *Scheduler {
 	return &Scheduler{
 		timers:       make(map[int]*time.Timer),
-		repositories: r,
-		config:       c,
+		config:       config,
 		logger:       l,
+		communitator: c,
 	}
 }
 
@@ -58,11 +57,11 @@ func (s *Scheduler) ScheduleFlush(jobID int, timeout time.Duration) error {
 
 		delete(s.timers, jobID)
 
+		s.communitator.SendSuccessFlushing(jobID)
+
 		s.logger.PrintInfo("Sucessfully flushed the job", types.AnyMap{
 			"job_id": jobID,
 		})
-
-		// Notify the client through the communicator so that the client can update the UI
 	})
 
 	return nil

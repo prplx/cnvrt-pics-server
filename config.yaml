@@ -2,8 +2,8 @@ server:
   allowOrigins: http://localhost:3000,
   allowHeaders: Origin, Content-Type, Accept,
   allowMethods: GET, POST, PUT, DELETE, OPTIONS,
-  bodyLimit: 20
+  bodyLimit: 20 # bytes * 1024 * 1024
   host: 0.0.0.0
 app:
   name: imagewizard
-  jobFlushTimeout: 10
+  jobFlushTimeout: 30 # seconds

@@ -34,5 +34,4 @@ func NewConfig(configPath string) (*types.Config, error) {
 	flag.Parse()
 
 	return config, nil
-
 }

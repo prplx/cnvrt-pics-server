@@ -21,6 +21,8 @@ import (
 	"github.com/prplx/lighter.pics/internal/services"
 )
 
+const uploadsDir = "/uploads"
+
 func main() {
 	config, err := config.NewConfig(os.Getenv("CONFIG_PATH"))
 	if err != nil {
@@ -37,7 +39,7 @@ func main() {
 	fiberApp := fiber.New(fiber.Config{
 		BodyLimit: config.Server.BodyLimit * 1024 * 1024,
 	})
-	fiberApp.Static("/uploads", config.Process.UploadDir, fiber.Static{
+	fiberApp.Static(uploadsDir, config.Process.UploadDir, fiber.Static{
 		Download: true,
 	})
 	fiberApp.Use(cors.New(cors.Config{
@@ -49,9 +51,9 @@ func main() {
 	logger := jsonlog.NewLogger(os.Stdout, jsonlog.LevelInfo)
 	repositories := repositories.NewRepositories(db.Pool)
 	communicator := communicator.NewCommunicator(config)
-	archiver := archiver.NewArchiver(config, repositories, logger, communicator)
-	scheduler := scheduler.NewScheduler(config, repositories, logger)
-	processor := processor.NewProcessor(config, repositories, communicator, logger, scheduler)
+	archiver := archiver.NewArchiver(config, repositories.Files, logger, communicator)
+	scheduler := scheduler.NewScheduler(config, logger, communicator)
+	processor := processor.NewProcessor(config, repositories.Operations, communicator, logger, scheduler)
 
 	processor.Startup()
 	defer processor.Shutdown()

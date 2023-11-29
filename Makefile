@@ -35,6 +35,9 @@ tidy:
 	go fmt ./...
 	go mod tidy -v
 
+mocks:
+	mockgen -source=internal/repositories/repositories.go --destination=internal/mocks/repositories.go --package=mocks
+	mockgen -source=internal/services/services.go --destination=internal/mocks/services.go --package=mocks
 
 db/migrate_up:
 	migrate -path=./migrations -database=${DB_DSN} up

@@ -59,6 +59,10 @@ func (c *CommunicatorMock) SendSuccessArchiving(jobID int, path string) error {
 	return nil
 }
 
+func (c *CommunicatorMock) SendSuccessFlushing(jobID int) error {
+	return nil
+}
+
 func (c *CommunicatorMock) Reset() {
 	c.mu.Lock()
 	defer c.mu.Unlock()

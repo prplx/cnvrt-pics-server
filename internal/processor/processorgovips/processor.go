@@ -16,11 +16,11 @@ import (
 )
 
 type Processor struct {
-	communicator services.Communicator
-	logger       services.Logger
-	repositories *repositories.Repositories
-	config       *types.Config
-	scheduler    services.Scheduler
+	communicator         services.Communicator
+	logger               services.Logger
+	operationsRepository repositories.Operations
+	config               *types.Config
+	scheduler            services.Scheduler
 }
 
 var Formats = map[string]vips.ImageType{
@@ -34,13 +34,13 @@ var Formats = map[string]vips.ImageType{
 	"avif": vips.ImageTypeAVIF,
 }
 
-func NewProcessor(config *types.Config, r *repositories.Repositories, c services.Communicator, l services.Logger, s services.Scheduler) *Processor {
+func NewProcessor(config *types.Config, or repositories.Operations, c services.Communicator, l services.Logger, s services.Scheduler) *Processor {
 	return &Processor{
-		communicator: c,
-		logger:       l,
-		repositories: r,
-		config:       config,
-		scheduler:    s,
+		communicator:         c,
+		logger:               l,
+		operationsRepository: or,
+		config:               config,
+		scheduler:            s,
 	}
 }
 
@@ -74,7 +74,7 @@ func (p *Processor) Process(ctx context.Context, input types.ImageProcessInput) 
 
 	p.communicator.SendStartProcessing(jobID, fileID, fileName)
 
-	possiblyExistingOperation, err := p.repositories.Operations.GetByParams(ctx, models.Operation{
+	possiblyExistingOperation, err := p.operationsRepository.GetByParams(ctx, models.Operation{
 		JobID:   jobID,
 		FileID:  fileID,
 		Format:  format,
@@ -150,7 +150,7 @@ func (p *Processor) Process(ctx context.Context, input types.ImageProcessInput) 
 
 	operation := models.Operation{JobID: jobID, FileID: fileID, Format: format, Quality: quality, Width: width, Height: height, FileName: resultFileName}
 
-	_, err = p.repositories.Operations.Create(ctx, operation)
+	_, err = p.operationsRepository.Create(ctx, operation)
 	if err != nil {
 		reportError(errors.Wrap(err, "error creating operation"))
 		return

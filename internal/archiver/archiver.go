@@ -15,18 +15,18 @@ import (
 )
 
 type Archiver struct {
-	config       *types.Config
-	repositories *repositories.Repositories
-	logger       services.Logger
-	communicator services.Communicator
+	config          *types.Config
+	filesRepository repositories.Files
+	logger          services.Logger
+	communicator    services.Communicator
 }
 
-func NewArchiver(config *types.Config, r *repositories.Repositories, l services.Logger, c services.Communicator) *Archiver {
+func NewArchiver(config *types.Config, fr repositories.Files, l services.Logger, c services.Communicator) *Archiver {
 	return &Archiver{
-		config:       config,
-		repositories: r,
-		logger:       l,
-		communicator: c,
+		config:          config,
+		filesRepository: fr,
+		logger:          l,
+		communicator:    c,
 	}
 }
 
@@ -44,7 +44,7 @@ func (a *Archiver) Archive(jobID int) error {
 		return errors.Wrap(err, "error sending start archiving")
 	}
 
-	filesWithOperaton, err := a.repositories.Files.GetWithLatestOperationsByJobID(jobID)
+	filesWithOperaton, err := a.filesRepository.GetWithLatestOperationsByJobID(jobID)
 	if err != nil {
 		reportError(err)
 		return errors.Wrap(err, "error getting files with latest operations")
@@ -76,6 +76,7 @@ func (a *Archiver) Archive(jobID int) error {
 func zipFiles(zipFile string, dir string, files map[string]string) error {
 	newZipFile, err := os.Create(helpers.BuildPath(dir, zipFile))
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 	defer newZipFile.Close()

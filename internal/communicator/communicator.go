@@ -1,6 +1,7 @@
 package communicator
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/prplx/lighter.pics/internal/types"
@@ -10,6 +11,15 @@ import (
 type Communicator struct {
 	client pusher.Client
 }
+
+const (
+	ProcessingEvent = "processing"
+	ArchivingEvent  = "archiving"
+	FlushedEvent    = "flushed"
+	StartedEvent    = "started"
+	ErrorEvent      = "error"
+	SuccessEvent    = "success"
+)
 
 func NewCommunicator(config *types.Config) *Communicator {
 	client := pusher.Client{
@@ -26,24 +36,24 @@ func NewCommunicator(config *types.Config) *Communicator {
 }
 
 func (c *Communicator) SendStartProcessing(jobID, fileID int, fileName string) error {
-	return c.client.Trigger(channelName(jobID), "processing", types.AnyMap{
-		"event":    "started",
+	return c.client.Trigger(channelName(jobID), ProcessingEvent, types.AnyMap{
+		"event":    StartedEvent,
 		"fileName": fileName,
 		"fileId":   fileID,
 	})
 }
 
 func (c *Communicator) SendErrorProcessing(jobID, fileID int, fileName string) error {
-	return c.client.Trigger(channelName(jobID), "processing", types.AnyMap{
-		"event":    "error",
+	return c.client.Trigger(channelName(jobID), ProcessingEvent, types.AnyMap{
+		"event":    ErrorEvent,
 		"fileName": fileName,
 		"fileId":   fileID,
 	})
 }
 
 func (c *Communicator) SendSuccessProcessing(jobID int, result types.SuccessResult) error {
-	return c.client.Trigger(channelName(jobID), "processing", types.AnyMap{
-		"event":          "success",
+	return c.client.Trigger(channelName(jobID), ProcessingEvent, types.AnyMap{
+		"event":          SuccessEvent,
 		"fileId":         result.SourceFileID,
 		"sourceFile":     result.SourceFileName,
 		"targetFile":     result.TargetFileName,
@@ -55,21 +65,27 @@ func (c *Communicator) SendSuccessProcessing(jobID int, result types.SuccessResu
 }
 
 func (c *Communicator) SendStartArchiving(jobID int) error {
-	return c.client.Trigger(channelName(jobID), "archiving", types.AnyMap{
-		"event": "started",
+	return c.client.Trigger(channelName(jobID), ArchivingEvent, types.AnyMap{
+		"event": StartedEvent,
 	})
 }
 
 func (c *Communicator) SendErrorArchiving(jobID int) error {
-	return c.client.Trigger(channelName(jobID), "archiving", types.AnyMap{
-		"event": "error",
+	return c.client.Trigger(channelName(jobID), ArchivingEvent, types.AnyMap{
+		"event": ErrorEvent,
 	})
 }
 
 func (c *Communicator) SendSuccessArchiving(jobID int, path string) error {
-	return c.client.Trigger(channelName(jobID), "archiving", types.AnyMap{
-		"event": "success",
+	return c.client.Trigger(channelName(jobID), ArchivingEvent, types.AnyMap{
+		"event": SuccessEvent,
 		"path":  path,
+	})
+}
+
+func (c *Communicator) SendSuccessFlushing(jobID int) error {
+	return c.client.Trigger(fmt.Sprint(jobID), FlushedEvent, types.AnyMap{
+		"event": SuccessEvent,
 	})
 }
 

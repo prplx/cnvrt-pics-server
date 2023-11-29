@@ -15,6 +15,7 @@ type Communicator interface {
 	SendStartArchiving(jobID int) error
 	SendErrorArchiving(jobID int) error
 	SendSuccessArchiving(jobID int, path string) error
+	SendSuccessFlushing(jobID int) error
 }
 
 type Logger interface {

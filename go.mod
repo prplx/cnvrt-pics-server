@@ -3,6 +3,7 @@ module github.com/prplx/lighter.pics
 go 1.21
 
 require (
+	github.com/davidbyttow/govips/v2 v2.13.0
 	github.com/gofiber/fiber/v2 v2.49.1
 	github.com/google/uuid v1.3.1
 	github.com/h2non/bimg v1.1.9
@@ -11,13 +12,13 @@ require (
 	github.com/pusher/pusher-http-go/v5 v5.1.1
 	github.com/spf13/afero v1.9.5
 	github.com/stretchr/testify v1.8.4
+	go.uber.org/mock v0.3.0
 	gopkg.in/yaml.v2 v2.2.2
 )
 
 require (
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/davidbyttow/govips/v2 v2.13.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
