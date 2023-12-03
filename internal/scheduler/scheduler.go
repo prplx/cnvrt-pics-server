@@ -51,7 +51,6 @@ func (s *Scheduler) ScheduleFlush(jobID int, timeout time.Duration) error {
 				s.logger.PrintInfo("Error while flushing the job", types.AnyMap{
 					"job_id": jobID,
 				})
-
 			}
 		}
 

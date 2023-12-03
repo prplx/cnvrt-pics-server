@@ -9,7 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/prplx/lighter.pics/internal/archiver"
-	"github.com/prplx/lighter.pics/internal/communicator"
+	communicator "github.com/prplx/lighter.pics/internal/communicator/communicatorpusher"
 	"github.com/prplx/lighter.pics/internal/config"
 	"github.com/prplx/lighter.pics/internal/handlers"
 	"github.com/prplx/lighter.pics/internal/jsonlog"

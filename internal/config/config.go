@@ -35,3 +35,18 @@ func NewConfig(configPath string) (*types.Config, error) {
 
 	return config, nil
 }
+
+func TestConfig() *types.Config {
+	return &types.Config{
+		Process: struct {
+			UploadDir string `yaml:"uploadDir"`
+		}{
+			UploadDir: "./temp",
+		},
+		App: struct {
+			Name            string `yaml:"name"`
+			JobFlushTimeout int    `yaml:"jobFlushTimeout"`
+		}{
+			Name: "cnvrt",
+		}}
+}

@@ -1,4 +1,4 @@
-package communicator
+package communicatorpusher
 
 import (
 	"fmt"

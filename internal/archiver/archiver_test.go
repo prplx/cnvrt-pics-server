@@ -10,31 +10,12 @@ import (
 
 	"math/rand"
 
+	"github.com/prplx/lighter.pics/internal/config"
 	"github.com/prplx/lighter.pics/internal/helpers"
 	"github.com/prplx/lighter.pics/internal/models"
-	"github.com/prplx/lighter.pics/internal/types"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
-
-func testConfig() *types.Config {
-	return &types.Config{
-		Process: struct {
-			UploadDir string `yaml:"uploadDir"`
-		}{
-			UploadDir: "./temp",
-		},
-		App: struct {
-			Name            string `yaml:"name"`
-			JobFlushTimeout int    `yaml:"jobFlushTimeout"`
-		}{
-			Name: "cnvrt",
-		}}
-}
-
-func jobID() int {
-	return rand.Intn(2e8)
-}
 
 func TestArchiver_Archive__should_report_and_return_when_communicator_returns_error_while_sending_start_archiving(t *testing.T) {
 	ctrl := gomock.NewController(t)
@@ -44,7 +25,7 @@ func TestArchiver_Archive__should_report_and_return_when_communicator_returns_er
 	logger := mocks.NewMockLogger(ctrl)
 	comm := mocks.NewMockCommunicator(ctrl)
 	filesRepo := mocks.NewMockFiles(ctrl)
-	archiver := NewArchiver(testConfig(), filesRepo, logger, comm)
+	archiver := NewArchiver(config.TestConfig(), filesRepo, logger, comm)
 	logger.EXPECT().PrintError(gomock.Any(), gomock.Any()).AnyTimes()
 
 	comm.EXPECT().SendStartArchiving(jobID).Return(errors.New("Communication problem")).Times(1)
@@ -65,7 +46,7 @@ func TestArchiver_Archive__should_report_and_return_when_files_repository_return
 	logger := mocks.NewMockLogger(ctrl)
 	comm := mocks.NewMockCommunicator(ctrl)
 	filesRepo := mocks.NewMockFiles(ctrl)
-	archiver := NewArchiver(testConfig(), filesRepo, logger, comm)
+	archiver := NewArchiver(config.TestConfig(), filesRepo, logger, comm)
 	logger.EXPECT().PrintError(gomock.Any(), gomock.Any()).AnyTimes()
 
 	comm.EXPECT().SendStartArchiving(jobID).Return(nil).Times(1)
@@ -87,18 +68,22 @@ func TestArchiver_Archive__should_successfully_zip_files_and_communicate_when_co
 	logger := mocks.NewMockLogger(ctrl)
 	comm := mocks.NewMockCommunicator(ctrl)
 	filesRepo := mocks.NewMockFiles(ctrl)
-	archiver := NewArchiver(testConfig(), filesRepo, logger, comm)
+	archiver := NewArchiver(config.TestConfig(), filesRepo, logger, comm)
 
 	logger.EXPECT().PrintError(gomock.Any(), gomock.Any()).AnyTimes()
 	comm.EXPECT().SendStartArchiving(jobID).Return(nil).Times(1)
 	filesRepo.EXPECT().GetWithLatestOperationsByJobID(jobID).Return([]*models.File{}, nil).Times(1)
-	comm.EXPECT().SendSuccessArchiving(jobID, helpers.BuildPath(testConfig().Process.UploadDir, jobID, fmt.Sprintf("%s.zip", testConfig().App.Name))).Return(nil).Times(1)
+	comm.EXPECT().SendSuccessArchiving(jobID, helpers.BuildPath(config.TestConfig().Process.UploadDir, jobID, fmt.Sprintf("%s.zip", config.TestConfig().App.Name))).Return(nil).Times(1)
 
-	os.MkdirAll(testConfig().Process.UploadDir+"/"+fmt.Sprint(jobID), os.ModePerm)
+	os.MkdirAll(config.TestConfig().Process.UploadDir+"/"+fmt.Sprint(jobID), os.ModePerm)
 
 	err := archiver.Archive(jobID)
 
 	assert.Nil(t, err)
 
-	os.RemoveAll(testConfig().Process.UploadDir)
+	os.RemoveAll(config.TestConfig().Process.UploadDir)
+}
+
+func jobID() int {
+	return rand.Intn(2e8)
 }

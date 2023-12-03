@@ -6,7 +6,6 @@ require (
 	github.com/davidbyttow/govips/v2 v2.13.0
 	github.com/gofiber/fiber/v2 v2.49.1
 	github.com/google/uuid v1.3.1
-	github.com/h2non/bimg v1.1.9
 	github.com/jackc/pgx/v5 v5.4.3
 	github.com/pkg/errors v0.9.1
 	github.com/pusher/pusher-http-go/v5 v5.1.1

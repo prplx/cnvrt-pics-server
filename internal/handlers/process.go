@@ -16,7 +16,7 @@ import (
 )
 
 func (h *Handlers) HandleProcessJob(ctx *fiber.Ctx) error {
-	v := validator.New()
+	v := validator.NewValidator()
 	if validateRequestQueryParams(v, ctx, "format", "quality"); !v.Valid() {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
 			"errors": v.Errors,
@@ -123,7 +123,7 @@ func (h *Handlers) HandleProcessFile(ctx *fiber.Ctx) error {
 		return ctx.SendStatus(http.StatusBadRequest)
 	}
 
-	v := validator.New()
+	v := validator.NewValidator()
 	if validateRequestQueryParams(v, ctx, "format", "quality", "file_id", "width", "height"); !v.Valid() {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
 			"errors": v.Errors,

@@ -9,7 +9,7 @@ import (
 )
 
 func (h *Handlers) HandleArchiveJob(ctx *fiber.Ctx) error {
-	v := validator.New()
+	v := validator.NewValidator()
 	reqJobID := ctx.Params("jobID")
 	if v.Check(reqJobID != "", "jobID", " jobId must be provided"); !v.Valid() {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
