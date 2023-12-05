@@ -12,6 +12,10 @@ import (
 
 	"math/rand"
 
+	"bytes"
+	"image"
+	"image/png"
+
 	"github.com/prplx/lighter.pics/internal/config"
 	"github.com/prplx/lighter.pics/internal/models"
 	"github.com/prplx/lighter.pics/internal/types"
@@ -38,7 +42,7 @@ func TestProcessor_Process_should_communicate_about_processing_error_when_gettin
 	processor.Process(ctx, input)
 }
 
-func TestProcessor_Process_should_communicate_about_processing_success_if_operation_and_file_already_exist(t *testing.T) {
+func TestProcessor_Process_should_communicate_about_processing_success_if_operation_and_file_already_exists(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -62,6 +66,73 @@ func TestProcessor_Process_should_communicate_about_processing_success_if_operat
 	resultFilePath := helpers.BuildPath(config.TestConfig().Process.UploadDir, input.JobID, resultFileName)
 	os.MkdirAll(helpers.BuildPath(config.TestConfig().Process.UploadDir, input.JobID), os.ModePerm)
 	os.Create(resultFilePath)
+	os.Create(filePath)
+
+	processor.Process(ctx, input)
+
+	os.RemoveAll(helpers.BuildPath(config.TestConfig().Process.UploadDir))
+}
+
+func TestProcessor_Process_should_convert_file_if_operation_exists_but_the_file_locally_doesnt(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	logger := mocks.NewMockLogger(ctrl)
+	comm := mocks.NewMockCommunicator(ctrl)
+	operationsRepo := mocks.NewMockOperations(ctrl)
+	scheduler := mocks.NewMockScheduler(ctrl)
+	processor := NewProcessor(config.TestConfig(), operationsRepo, comm, logger, scheduler)
+	ctx := context.Background()
+	input := processInput()
+	resultFileName := uuid.NewString() + "." + "webp"
+
+	myImage := image.NewRGBA(image.Rect(0, 0, 100, 200))
+	var buff bytes.Buffer
+	png.Encode(&buff, myImage)
+	input.Buffer = buff.Bytes()
+
+	firstCall := comm.EXPECT().SendStartProcessing(input.JobID, input.FileID, input.FileName).Return(nil).Times(1)
+	secondCall := operationsRepo.EXPECT().GetByParams(ctx, gomock.Any()).Return(&models.Operation{
+		FileName: resultFileName,
+	}, nil).Times(1).After(firstCall)
+	thirdCall := scheduler.EXPECT().ScheduleFlush(input.JobID, gomock.Any()).Return(nil).Times(1)
+	fourthCall := operationsRepo.EXPECT().Create(ctx, gomock.Any()).Return(jobID(), nil).Times(1).After(secondCall).After(thirdCall)
+	comm.EXPECT().SendSuccessProcessing(input.JobID, gomock.Any()).Return(nil).Times(1).After(fourthCall)
+
+	os.MkdirAll(helpers.BuildPath(config.TestConfig().Process.UploadDir, input.JobID), os.ModePerm)
+	filePath := helpers.BuildPath(config.TestConfig().Process.UploadDir, input.JobID, input.FileName)
+	os.Create(filePath)
+
+	processor.Process(ctx, input)
+
+	os.RemoveAll(helpers.BuildPath(config.TestConfig().Process.UploadDir))
+}
+
+func TestProcessor_Process_should_convert_file_if_neither_operation_nor_file_locally_exist(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	logger := mocks.NewMockLogger(ctrl)
+	comm := mocks.NewMockCommunicator(ctrl)
+	operationsRepo := mocks.NewMockOperations(ctrl)
+	scheduler := mocks.NewMockScheduler(ctrl)
+	processor := NewProcessor(config.TestConfig(), operationsRepo, comm, logger, scheduler)
+	ctx := context.Background()
+	input := processInput()
+
+	myImage := image.NewRGBA(image.Rect(0, 0, 100, 200))
+	var buff bytes.Buffer
+	png.Encode(&buff, myImage)
+	input.Buffer = buff.Bytes()
+
+	firstCall := comm.EXPECT().SendStartProcessing(input.JobID, input.FileID, input.FileName).Return(nil).Times(1)
+	secondCall := operationsRepo.EXPECT().GetByParams(ctx, gomock.Any()).Return(nil, nil).Times(1).After(firstCall)
+	thirdCall := scheduler.EXPECT().ScheduleFlush(input.JobID, gomock.Any()).Return(nil).Times(1)
+	fourthCall := operationsRepo.EXPECT().Create(ctx, gomock.Any()).Return(jobID(), nil).Times(1).After(secondCall).After(thirdCall)
+	comm.EXPECT().SendSuccessProcessing(input.JobID, gomock.Any()).Return(nil).Times(1).After(fourthCall)
+
+	os.MkdirAll(helpers.BuildPath(config.TestConfig().Process.UploadDir, input.JobID), os.ModePerm)
+	filePath := helpers.BuildPath(config.TestConfig().Process.UploadDir, input.JobID, input.FileName)
 	os.Create(filePath)
 
 	processor.Process(ctx, input)
