@@ -170,6 +170,7 @@ func (p *Processor) Process(ctx context.Context, input types.ImageProcessInput) 
 			"job_id":    jobID,
 			"file_name": fileName,
 			"file_id":   fileID,
+			"operation": "send_success_processing",
 		})
 	}
 

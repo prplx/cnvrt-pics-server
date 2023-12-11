@@ -13,6 +13,7 @@ import (
 	reflect "reflect"
 	time "time"
 
+	websocket "github.com/gofiber/contrib/websocket"
 	types "github.com/prplx/lighter.pics/internal/types"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -38,6 +39,30 @@ func NewMockCommunicator(ctrl *gomock.Controller) *MockCommunicator {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockCommunicator) EXPECT() *MockCommunicatorMockRecorder {
 	return m.recorder
+}
+
+// AddClient mocks base method.
+func (m *MockCommunicator) AddClient(jobID int, connection *websocket.Conn) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "AddClient", jobID, connection)
+}
+
+// AddClient indicates an expected call of AddClient.
+func (mr *MockCommunicatorMockRecorder) AddClient(jobID, connection any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddClient", reflect.TypeOf((*MockCommunicator)(nil).AddClient), jobID, connection)
+}
+
+// RemoveClient mocks base method.
+func (m *MockCommunicator) RemoveClient(jobID int) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "RemoveClient", jobID)
+}
+
+// RemoveClient indicates an expected call of RemoveClient.
+func (mr *MockCommunicatorMockRecorder) RemoveClient(jobID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveClient", reflect.TypeOf((*MockCommunicator)(nil).RemoveClient), jobID)
 }
 
 // SendErrorArchiving mocks base method.

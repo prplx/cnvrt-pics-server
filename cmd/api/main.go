@@ -6,10 +6,11 @@ import (
 	"log"
 	"os"
 
+	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/prplx/lighter.pics/internal/archiver"
-	communicator "github.com/prplx/lighter.pics/internal/communicator/communicatorpusher"
+	communicator "github.com/prplx/lighter.pics/internal/communicator/communicatorwebsocket"
 	"github.com/prplx/lighter.pics/internal/config"
 	"github.com/prplx/lighter.pics/internal/handlers"
 	"github.com/prplx/lighter.pics/internal/jsonlog"
@@ -47,6 +48,15 @@ func main() {
 		AllowHeaders: config.Server.AllowHeaders,
 		AllowMethods: config.Server.AllowMethods,
 	}))
+	fiberApp.Use("/ws", func(c *fiber.Ctx) error {
+		// IsWebSocketUpgrade returns true if the client
+		// requested upgrade to the WebSocket protocol.
+		if websocket.IsWebSocketUpgrade(c) {
+			c.Locals("allowed", true)
+			return c.Next()
+		}
+		return fiber.ErrUpgradeRequired
+	})
 
 	logger := jsonlog.NewLogger(os.Stdout, jsonlog.LevelInfo)
 	repositories := repositories.NewRepositories(db.Pool)

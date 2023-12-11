@@ -11,6 +11,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
 	"github.com/prplx/lighter.pics/internal/handlers"
 	svc "github.com/prplx/lighter.pics/internal/services"
@@ -28,6 +29,10 @@ type CommunicatorMock struct {
 	StartCalls int
 	ErrCalls   int
 }
+
+func (c *CommunicatorMock) AddClient(jobID int, connection *websocket.Conn) {}
+
+func (c *CommunicatorMock) RemoveClient(jobID int) {}
 
 func (c *CommunicatorMock) SendStartProcessing(jobID, fileID int, fileName string) error {
 	c.mu.Lock()

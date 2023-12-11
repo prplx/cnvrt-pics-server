@@ -35,6 +35,10 @@ func NewCommunicator(config *types.Config) *Communicator {
 	}
 }
 
+func (c *Communicator) AddClient(jobID string, connection interface{}) {}
+
+func (c *Communicator) RemoveClient(jobID string) {}
+
 func (c *Communicator) SendStartProcessing(jobID, fileID int, fileName string) error {
 	return c.client.Trigger(channelName(jobID), ProcessingEvent, types.AnyMap{
 		"event":    StartedEvent,

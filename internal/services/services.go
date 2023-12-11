@@ -4,11 +4,14 @@ import (
 	"context"
 	"time"
 
+	"github.com/gofiber/contrib/websocket"
 	"github.com/prplx/lighter.pics/internal/repositories"
 	"github.com/prplx/lighter.pics/internal/types"
 )
 
 type Communicator interface {
+	AddClient(jobID int, connection *websocket.Conn)
+	RemoveClient(jobID int)
 	SendStartProcessing(jobID, fileID int, fileName string) error
 	SendErrorProcessing(jobID, fileID int, fileName string) error
 	SendSuccessProcessing(jobID int, result types.SuccessResult) error

@@ -6,4 +6,4 @@ server:
   host: 0.0.0.0
 app:
   name: imagewizard
-  jobFlushTimeout: 30 # seconds
+  jobFlushTimeout: 3600 # seconds
