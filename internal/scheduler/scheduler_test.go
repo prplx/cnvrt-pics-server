@@ -17,11 +17,13 @@ func TestScheduler_ScheduleFlush__should_reset_timer_when_already_added(t *testi
 
 	logger := mocks.NewMockLogger(ctrl)
 	communicator := mocks.NewMockCommunicator(ctrl)
-	scheduler := NewScheduler(config.TestConfig(), logger, communicator)
+	jobsRepo := mocks.NewMockJobs(ctrl)
+	scheduler := NewScheduler(config.TestConfig(), logger, communicator, jobsRepo)
 
 	callFirst := logger.EXPECT().PrintInfo("Start flushing job", gomock.Any()).Times(1)
 	logger.EXPECT().PrintInfo("Sucessfully flushed the job", gomock.Any()).Times(1).After(callFirst)
 	communicator.EXPECT().SendSuccessFlushing(gomock.Any()).Times(1)
+	jobsRepo.EXPECT().Delete(gomock.Any(), gomock.Any()).Times(1)
 
 	jobID := jobID()
 	err := scheduler.ScheduleFlush(jobID, 100*time.Millisecond)
@@ -42,10 +44,12 @@ func TestScheduler_ScheduleFlush__should_report_twice_when_called_with_different
 
 	logger := mocks.NewMockLogger(ctrl)
 	communicator := mocks.NewMockCommunicator(ctrl)
-	scheduler := NewScheduler(config.TestConfig(), logger, communicator)
+	jobsRepo := mocks.NewMockJobs(ctrl)
+	scheduler := NewScheduler(config.TestConfig(), logger, communicator, jobsRepo)
 
 	logger.EXPECT().PrintInfo("Start flushing job", gomock.Any()).Times(2)
 	logger.EXPECT().PrintInfo("Sucessfully flushed the job", gomock.Any()).Times(2)
+	jobsRepo.EXPECT().Delete(gomock.Any(), gomock.Any()).Times(2)
 	communicator.EXPECT().SendSuccessFlushing(gomock.Any()).Times(2)
 
 	jobID1 := jobID()
@@ -63,10 +67,12 @@ func TestScheduler_ScheduleFlush__should_remove_the_job_from_the_map_after_execu
 
 	logger := mocks.NewMockLogger(ctrl)
 	communicator := mocks.NewMockCommunicator(ctrl)
-	scheduler := NewScheduler(config.TestConfig(), logger, communicator)
+	jobsRepo := mocks.NewMockJobs(ctrl)
+	scheduler := NewScheduler(config.TestConfig(), logger, communicator, jobsRepo)
 
 	logger.EXPECT().PrintInfo("Start flushing job", gomock.Any()).Times(1)
 	logger.EXPECT().PrintInfo("Sucessfully flushed the job", gomock.Any()).Times(1)
+	jobsRepo.EXPECT().Delete(gomock.Any(), gomock.Any()).Times(1)
 	communicator.EXPECT().SendSuccessFlushing(gomock.Any()).Times(1)
 
 	jobID := jobID()

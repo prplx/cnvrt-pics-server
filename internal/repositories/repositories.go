@@ -9,6 +9,7 @@ import (
 
 type Jobs interface {
 	Create(ctx context.Context) (int, error)
+	Delete(ctx context.Context, jobID int) error
 }
 
 type Files interface {

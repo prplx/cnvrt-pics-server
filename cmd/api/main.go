@@ -41,7 +41,7 @@ func main() {
 	repositories := repositories.NewRepositories(db.Pool)
 	communicator := communicator.NewCommunicator(config)
 	archiver := archiver.NewArchiver(config, repositories.Files, logger, communicator)
-	scheduler := scheduler.NewScheduler(config, logger, communicator)
+	scheduler := scheduler.NewScheduler(config, logger, communicator, repositories.Jobs)
 	processor := processor.NewProcessor(config, repositories.Operations, communicator, logger, scheduler)
 
 	processor.Startup()

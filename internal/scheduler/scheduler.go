@@ -1,29 +1,34 @@
 package scheduler
 
 import (
+	"context"
+	"errors"
 	"os"
 	"sync"
 	"time"
 
 	"github.com/prplx/lighter.pics/internal/helpers"
+	"github.com/prplx/lighter.pics/internal/repositories"
 	"github.com/prplx/lighter.pics/internal/services"
 	"github.com/prplx/lighter.pics/internal/types"
 )
 
 type Scheduler struct {
-	mu           sync.Mutex
-	timers       map[int]*time.Timer
-	config       *types.Config
-	logger       services.Logger
-	communitator services.Communicator
+	mu             sync.Mutex
+	timers         map[int]*time.Timer
+	config         *types.Config
+	logger         services.Logger
+	communitator   services.Communicator
+	jobsRepository repositories.Jobs
 }
 
-func NewScheduler(config *types.Config, l services.Logger, c services.Communicator) *Scheduler {
+func NewScheduler(config *types.Config, l services.Logger, c services.Communicator, jr repositories.Jobs) *Scheduler {
 	return &Scheduler{
-		timers:       make(map[int]*time.Timer),
-		config:       config,
-		logger:       l,
-		communitator: c,
+		timers:         make(map[int]*time.Timer),
+		config:         config,
+		logger:         l,
+		communitator:   c,
+		jobsRepository: jr,
 	}
 }
 
@@ -57,10 +62,16 @@ func (s *Scheduler) ScheduleFlush(jobID int, timeout time.Duration) error {
 		delete(s.timers, jobID)
 
 		s.communitator.SendSuccessFlushing(jobID)
-
 		s.logger.PrintInfo("Sucessfully flushed the job", types.AnyMap{
 			"job_id": jobID,
 		})
+
+		err := s.jobsRepository.Delete(context.Background(), jobID)
+		if err != nil {
+			s.logger.PrintError(errors.New("error while deleting the job"), types.AnyMap{
+				"job_id": jobID,
+			})
+		}
 	})
 
 	return nil

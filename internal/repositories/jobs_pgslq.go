@@ -23,6 +23,17 @@ func (r *JobsRepo) Create(ctx context.Context) (int, error) {
 	return jobID, nil
 }
 
+func (r *JobsRepo) Delete(ctx context.Context, jobID int) error {
+	_, err := r.pool.Exec(ctx, `
+		DELETE FROM jobs WHERE id = $1;
+	`, jobID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func NewJobsRepository(pool *pgxpool.Pool) *JobsRepo {
 	return &JobsRepo{pool}
 }
