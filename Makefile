@@ -1,18 +1,15 @@
 include .envrc
 
-.PHONY: run run/live test audit tidy db/migrate_up db/migrate_down db/migrate_force db/migrate_create docker/build docker/run
+.PHONY: run run/live test audit tidy db/migrate_up db/migrate_down db/migrate_force db/migrate_create docker/build docker/run mocks
 
 MAIN_PACKAGE_PATH := ./cmd/api
-BINARY_NAME := lighter-pics
+BINARY_NAME := cnvrt
 
 build:
 	go build -o=/tmp/bin/${BINARY_NAME} ${MAIN_PACKAGE_PATH}
 
-buildWebhook:
-	@go build -o ./cmd/setTelegramWebhookUrl ./cmd/setTelegramWebhookUrl.go
-
 run:
-	@go run ./cmd/api/main.go -db-dsn=${DB_DSN} -pusher-app-id=${PUSHER_APP_ID} -pusher-key=${PUSHER_KEY} -pusher-secret=${PUSHER_SECRET} -pusher-cluster=${PUSHER_CLUSTER}
+	@go run ./cmd/api/main.go -db-dsn=${DB_DSN} -metrics-user=${METRICS_USER} -metrics-password=${METRICS_PASSWORD} -firebase-project-id=${FIREBASE_PROJECT_ID}
 
 test:
 	@go test -v ./...
@@ -55,6 +52,6 @@ docker/build:
 	docker build -t imagewizard .
 
 docker/run:
-	docker run -e CONFIG_PATH="/app/config.yaml" -e DB_DSN=${DB_DSN} -e ENV="production" -e PUSHER_APP_ID=${PUSHER_APP_ID} -e PUSHER_KEY=${PUSHER_KEY} -e PUSHER_SECRET=${PUSHER_SECRET} -e PUSHER_CLUSTER=${PUSHER_CLUSTER} -e PORT=3001 -e UPLOAD_DIR="/app/uploads" -p 3001:3001 imagewizard
+	docker run -e CONFIG_PATH="/app/config.yaml" -e DB_DSN=${DB_DSN} -e ENV="production" -e METRICS_USER=${METRICS_USER} -e METRICS_PASSWORD=${METRICS_PASSWORD} -e FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID} -e PORT=3001 -e UPLOAD_DIR="/app/uploads" -p 3001:3001 cnvrt
 
 

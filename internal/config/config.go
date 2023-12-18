@@ -27,10 +27,9 @@ func NewConfig(configPath string) (*types.Config, error) {
 	flag.StringVar(&config.Process.UploadDir, "upload-dir", "./uploads", "Uploads directory")
 	flag.StringVar(&config.DB.DSN, "db-dsn", "", "Database DSN")
 	flag.StringVar(&config.Env, "env", "development", "Environment")
-	flag.StringVar(&config.Pusher.AppID, "pusher-app-id", "", "Pusher App ID")
-	flag.StringVar(&config.Pusher.Key, "pusher-key", "", "Pusher Key")
-	flag.StringVar(&config.Pusher.Secret, "pusher-secret", "", "Pusher Secret")
-	flag.StringVar(&config.Pusher.Cluster, "pusher-cluster", "", "Pusher Cluster")
+	flag.StringVar(&config.App.MetricsUser, "metrics-user", "", "Metrics basic auth user")
+	flag.StringVar(&config.App.MetricsPassword, "metrics-password", "", "Metrics basic auth password")
+	flag.StringVar(&config.Firebase.ProjectID, "firebase-project-id", "", "Firebase project ID")
 	flag.Parse()
 
 	return config, nil
@@ -46,6 +45,8 @@ func TestConfig() *types.Config {
 		App: struct {
 			Name            string `yaml:"name"`
 			JobFlushTimeout int    `yaml:"jobFlushTimeout"`
+			MetricsUser     string
+			MetricsPassword string
 		}{
 			Name: "cnvrt",
 		}}

@@ -1,9 +1,13 @@
 server:
   allowOrigins: http://localhost:3000,
-  allowHeaders: Origin, Content-Type, Accept,
+  allowHeaders: Origin, Content-Type, Accept, X-Firebase-AppCheck,
   allowMethods: GET, POST, PUT, DELETE, OPTIONS,
   bodyLimit: 20 # bytes * 1024 * 1024
   host: 0.0.0.0
+
 app:
   name: imagewizard
   jobFlushTimeout: 3600 # seconds
+
+firebase:
+  appCheckHeader: X-Firebase-AppCheck

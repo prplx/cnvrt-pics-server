@@ -111,9 +111,8 @@ CMD /usr/local/bin/imagewizard \
   -port=${PORT} \
   -upload-dir=${UPLOAD_DIR} \
   -db-dsn=${DB_DSN} \
-  -pusher-app-id=${PUSHER_APP_ID} \
-  -pusher-key=${PUSHER_KEY} \
-  -pusher-secret=${PUSHER_SECRET} \
-  -pusher-cluster=${PUSHER_CLUSTER}
+  -metrics-user=${METRICS_USER} \
+  -metrics-password=${METRICS_PASSWORD} \
+  -firebase-project-id=${FIREBASE_PROJECT_ID}
 
 EXPOSE ${PORT}

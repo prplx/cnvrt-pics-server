@@ -16,15 +16,15 @@ type Config struct {
 	DB struct {
 		DSN string
 	}
-	Pusher struct {
-		AppID   string
-		Key     string
-		Secret  string
-		Cluster string
-	}
 	App struct {
 		Name            string `yaml:"name"`
 		JobFlushTimeout int    `yaml:"jobFlushTimeout"`
+		MetricsUser     string
+		MetricsPassword string
+	}
+	Firebase struct {
+		AppCheckHeader string `yaml:"appCheckHeader"`
+		ProjectID      string
 	}
 }
 

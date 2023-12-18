@@ -105,8 +105,7 @@ var services = svc.Services{
 }
 
 const (
-	healthcheckEndpoint = "/api/v1/healthcheck"
-	processEndpoint     = "/api/v1/process"
+	processEndpoint = "/api/v1/process"
 )
 
 func Test_Healthcheck(t *testing.T) {
@@ -143,7 +142,7 @@ func setup(t *testing.T) *fiber.App {
 	app := fiber.New()
 	handlers := handlers.NewHandlers(&services)
 
-	Register(app, handlers)
+	Register(app, handlers, services.Config)
 	return app
 }
 

@@ -12,7 +12,7 @@ type FilesRepo struct {
 	pool *pgxpool.Pool
 }
 
-func (r *FilesRepo) GetById(ctx context.Context, id int) (*models.File, error) {
+func (r *FilesRepo) GetByID(ctx context.Context, id int) (*models.File, error) {
 	query := `SELECT id, name FROM files WHERE id = @id;`
 	args := pgx.NamedArgs{
 		"id": id,

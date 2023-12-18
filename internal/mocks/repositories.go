@@ -92,19 +92,19 @@ func (mr *MockFilesMockRecorder) CreateBulk(ctx, jobID, fileNames any) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateBulk", reflect.TypeOf((*MockFiles)(nil).CreateBulk), ctx, jobID, fileNames)
 }
 
-// GetById mocks base method.
-func (m *MockFiles) GetById(ctx context.Context, id int) (*models.File, error) {
+// GetByID mocks base method.
+func (m *MockFiles) GetByID(ctx context.Context, id int) (*models.File, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetById", ctx, id)
+	ret := m.ctrl.Call(m, "GetByID", ctx, id)
 	ret0, _ := ret[0].(*models.File)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetById indicates an expected call of GetById.
-func (mr *MockFilesMockRecorder) GetById(ctx, id any) *gomock.Call {
+// GetByID indicates an expected call of GetByID.
+func (mr *MockFilesMockRecorder) GetByID(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockFiles)(nil).GetById), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockFiles)(nil).GetByID), ctx, id)
 }
 
 // GetWithLatestOperationsByJobID mocks base method.

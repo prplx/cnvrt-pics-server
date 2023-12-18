@@ -6,9 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/prplx/lighter.pics/internal/archiver"
 	communicator "github.com/prplx/lighter.pics/internal/communicator/communicatorwebsocket"
 	"github.com/prplx/lighter.pics/internal/config"
@@ -21,8 +19,6 @@ import (
 	"github.com/prplx/lighter.pics/internal/scheduler"
 	"github.com/prplx/lighter.pics/internal/services"
 )
-
-const uploadsDir = "/uploads"
 
 func main() {
 	config, err := config.NewConfig(os.Getenv("CONFIG_PATH"))
@@ -37,25 +33,8 @@ func main() {
 	}
 	defer db.Close()
 
-	fiberApp := fiber.New(fiber.Config{
+	app := fiber.New(fiber.Config{
 		BodyLimit: config.Server.BodyLimit * 1024 * 1024,
-	})
-	fiberApp.Static(uploadsDir, config.Process.UploadDir, fiber.Static{
-		Download: true,
-	})
-	fiberApp.Use(cors.New(cors.Config{
-		AllowOrigins: config.Server.AllowOrigins,
-		AllowHeaders: config.Server.AllowHeaders,
-		AllowMethods: config.Server.AllowMethods,
-	}))
-	fiberApp.Use("/ws", func(c *fiber.Ctx) error {
-		// IsWebSocketUpgrade returns true if the client
-		// requested upgrade to the WebSocket protocol.
-		if websocket.IsWebSocketUpgrade(c) {
-			c.Locals("allowed", true)
-			return c.Next()
-		}
-		return fiber.ErrUpgradeRequired
 	})
 
 	logger := jsonlog.NewLogger(os.Stdout, jsonlog.LevelInfo)
@@ -79,7 +58,7 @@ func main() {
 	})
 
 	handlers := handlers.NewHandlers(services)
-	router.Register(fiberApp, handlers)
+	router.Register(app, handlers, config)
 
-	log.Fatal(fiberApp.Listen(fmt.Sprintf("%s:%d", config.Server.Host, config.Server.Port)))
+	log.Fatal(app.Listen(fmt.Sprintf("%s:%d", config.Server.Host, config.Server.Port)))
 }

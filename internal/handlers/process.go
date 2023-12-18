@@ -82,9 +82,9 @@ func (h *Handlers) HandleProcessJob(ctx *fiber.Ctx) error {
 		return ctx.SendStatus(http.StatusInternalServerError)
 	}
 
-	fileNameToId := map[string]int{}
+	fileNameToID := map[string]int{}
 	for _, file := range dbFiles {
-		fileNameToId[file.Name] = file.ID
+		fileNameToID[file.Name] = file.ID
 	}
 
 	files, err := os.ReadDir(path)
@@ -106,8 +106,8 @@ func (h *Handlers) HandleProcessJob(ctx *fiber.Ctx) error {
 	if len(buffers) == len(files) {
 		for idx, buffer := range buffers {
 			name := files[idx].Name()
-			fileId := fileNameToId[name]
-			go h.services.Processor.Process(context.Background(), types.ImageProcessInput{JobID: jobID, FileID: fileId, FileName: name, Format: reqFormat, Quality: quality, Buffer: buffer})
+			fileID := fileNameToID[name]
+			go h.services.Processor.Process(context.Background(), types.ImageProcessInput{JobID: jobID, FileID: fileID, FileName: name, Format: reqFormat, Quality: quality, Buffer: buffer})
 		}
 	}
 
@@ -133,7 +133,7 @@ func (h *Handlers) HandleProcessFile(ctx *fiber.Ctx) error {
 	format := ctx.Query("format")
 	reqQuality := ctx.Query("quality")
 	reqFileID := ctx.Query("file_id")
-	reqFileIdInt, err := strconv.Atoi(reqFileID)
+	reqFileIDInt, err := strconv.Atoi(reqFileID)
 	if err != nil {
 		h.services.Logger.PrintError(err, types.AnyMap{
 			"message": "error parsing file_id param",
@@ -157,7 +157,7 @@ func (h *Handlers) HandleProcessFile(ctx *fiber.Ctx) error {
 		return ctx.SendStatus(http.StatusBadRequest)
 	}
 
-	file, err := h.services.Repositories.Files.GetById(context.Background(), reqFileIdInt)
+	file, err := h.services.Repositories.Files.GetByID(context.Background(), reqFileIDInt)
 	if err != nil {
 		h.services.Logger.PrintError(err, types.AnyMap{
 			"message": "error getting file by id",
