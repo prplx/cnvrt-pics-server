@@ -1,6 +1,6 @@
 include .envrc
 
-.PHONY: run run/live test audit tidy db/migrate_up db/migrate_down db/migrate_force db/migrate_create docker/build docker/run mocks
+.PHONY: run run/live test audit tidy db/migrate_up db/migrate_down db/migrate_force db/migrate_create docker/build docker/run mocks report install
 
 MAIN_PACKAGE_PATH := ./cmd/api
 BINARY_NAME := cnvrt
@@ -12,7 +12,13 @@ run:
 	@go run ./cmd/api/main.go -db-dsn=${DB_DSN} -metrics-user=${METRICS_USER} -metrics-password=${METRICS_PASSWORD} -firebase-project-id=${FIREBASE_PROJECT_ID}
 
 test:
-	@go test -v ./...
+	@ENV=test go test -v ./... -coverprofile=coverage.out
+
+install:
+	@go get -u ./...
+
+report:
+	@go tool cover -html=coverage.out -o coverage.html
 
 run/live:
 	go run github.com/cosmtrek/air@v1.43.0 \

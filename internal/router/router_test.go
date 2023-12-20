@@ -1,107 +1,33 @@
-package router
+package router_test
 
 import (
 	"bytes"
-	"encoding/json"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"sync"
 	"testing"
 
-	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
 	"github.com/prplx/lighter.pics/internal/handlers"
+	"github.com/prplx/lighter.pics/internal/mocks"
+	"github.com/prplx/lighter.pics/internal/models"
+	"github.com/prplx/lighter.pics/internal/repositories"
+	"github.com/prplx/lighter.pics/internal/router"
 	svc "github.com/prplx/lighter.pics/internal/services"
 	"github.com/prplx/lighter.pics/internal/types"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 )
 
-type jobCreatedResponse struct {
-	JobID string `json:"job_id"`
-}
-
-type CommunicatorMock struct {
-	mu         sync.Mutex
-	StartCalls int
-	ErrCalls   int
-}
-
-func (c *CommunicatorMock) AddClient(jobID int, connection *websocket.Conn) {}
-
-func (c *CommunicatorMock) RemoveClient(jobID int) {}
-
-func (c *CommunicatorMock) SendStartProcessing(jobID, fileID int, fileName string) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	c.StartCalls++
-	return nil
-}
-
-func (c *CommunicatorMock) SendErrorProcessing(jobID, fileID int, fileName string) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	c.ErrCalls++
-	return nil
-}
-
-func (c *CommunicatorMock) SendSuccessProcessing(jobID int, result types.SuccessResult) error {
-	return nil
-}
-
-func (c *CommunicatorMock) SendStartArchiving(jobID int) error {
-	return nil
-}
-
-func (c *CommunicatorMock) SendErrorArchiving(jobID int) error {
-	return nil
-}
-
-func (c *CommunicatorMock) SendSuccessArchiving(jobID int, path string) error {
-	return nil
-}
-
-func (c *CommunicatorMock) SendSuccessFlushing(jobID int) error {
-	return nil
-}
-
-func (c *CommunicatorMock) Reset() {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	c.StartCalls = 0
-	c.ErrCalls = 0
-}
-
-func (c *CommunicatorMock) GetStartCalls() int {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	return c.StartCalls
-}
-
-type LoggerMock struct{}
-
-func (l *LoggerMock) PrintInfo(message string, properties ...types.AnyMap) {}
-
-func (l *LoggerMock) PrintError(err error, properties ...types.AnyMap) {}
-
-func (l *LoggerMock) PrintFatal(err error, properties ...types.AnyMap) {}
-
-func (l *LoggerMock) Write(message []byte) (n int, err error) { return 0, nil }
-
-var communicator = &CommunicatorMock{}
-var services = svc.Services{
-	Communicator: communicator,
-	Logger:       &LoggerMock{},
-	Config: &types.Config{
-		Process: struct {
-			UploadDir string `yaml:"uploadDir"`
-		}{
-			UploadDir: "./uploads",
-		},
-	},
+type Mocks struct {
+	jobsRepo     *mocks.MockJobs
+	filesRepo    *mocks.MockFiles
+	communicator *mocks.MockCommunicator
+	logger       *mocks.MockLogger
+	processor    *mocks.MockProcessor
 }
 
 const (
@@ -109,8 +35,9 @@ const (
 )
 
 func Test_Healthcheck(t *testing.T) {
-	app := setup(t)
-	r := httptest.NewRequest(http.MethodGet, healthcheckEndpoint, nil)
+	mocks := &Mocks{}
+	app, _ := setup(t, mocks)
+	r := httptest.NewRequest(http.MethodGet, "/healthcheck", nil)
 	resp, _ := app.Test(r, -1)
 	got, _ := io.ReadAll(resp.Body)
 	want := `{"status":"ok"}`
@@ -119,37 +46,63 @@ func Test_Healthcheck(t *testing.T) {
 	assert.Equal(t, want, string(got))
 }
 
-func Test_Process(t *testing.T) {
-	body, contentType := createFormFile(t, "file", "file.png")
-	app := setup(t)
-	r := httptest.NewRequest(http.MethodPost, processEndpoint, body)
+func Test_HandleProcessJob__should_return_correct_response_when_all_conditions_are_met(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	fileName := "file.png"
+	jobID := 555
+	jobsRepo := mocks.NewMockJobs(ctrl)
+	communicator := mocks.NewMockCommunicator(ctrl)
+	logger := mocks.NewMockLogger(ctrl)
+	filesRepo := mocks.NewMockFiles(ctrl)
+	processor := mocks.NewMockProcessor(ctrl)
+	mocks := &Mocks{
+		jobsRepo:     jobsRepo,
+		filesRepo:    filesRepo,
+		communicator: communicator,
+		logger:       logger,
+		processor:    processor,
+	}
+	jobsRepo.EXPECT().Create(gomock.Any()).Return(jobID, nil)
+	logger.EXPECT().PrintError(gomock.Any()).AnyTimes()
+	filesRepo.EXPECT().CreateBulk(gomock.Any(), jobID, []string{fileName}).Return([]models.File{
+		{
+			ID:   1,
+			Name: fileName,
+		},
+	}, nil)
+	processor.EXPECT().Process(gomock.Any(), gomock.Any())
+
+	body, contentType := createFormFile(t, "file", fileName)
+	app, services := setup(t, mocks)
+
+	r := httptest.NewRequest(http.MethodPost, processEndpoint+"?format=webp&quality=80", body)
 	r.Header.Add("Content-Type", contentType)
 
 	resp, _ := app.Test(r, -1)
 	got, _ := io.ReadAll(resp.Body)
-	createdResponse := jobCreatedResponse{}
-	json.Unmarshal(got, &createdResponse)
-	jobID := createdResponse.JobID
+	want := `{"job_id":555}`
 
-	assert.NotEqual(t, "", jobID)
+	assert.Equal(t, want, string(got))
 	assert.Equal(t, 202, resp.StatusCode)
-	assert.Equal(t, 1, communicator.GetStartCalls())
-	cleanUp(t)
+
+	cleanUp(t, services)
 }
 
-func setup(t *testing.T) *fiber.App {
+func setup(t *testing.T, mocks *Mocks) (*fiber.App, *svc.Services) {
 	t.Helper()
 	app := fiber.New()
+	services := getServices(t, mocks)
 	handlers := handlers.NewHandlers(&services)
 
-	Register(app, handlers, services.Config)
-	return app
+	router.Register(app, handlers, services.Config)
+	return app, &services
 }
 
-func cleanUp(t *testing.T) {
+func cleanUp(t *testing.T, services *svc.Services) {
 	t.Helper()
 	os.RemoveAll(services.Config.Process.UploadDir)
-	communicator.Reset()
 }
 
 func createFormFile(t *testing.T, fieldName, filePath string) (*bytes.Buffer, string) {
@@ -176,4 +129,23 @@ func createFormFile(t *testing.T, fieldName, filePath string) (*bytes.Buffer, st
 
 	mw.Close()
 	return body, mw.FormDataContentType()
+}
+
+func getServices(t *testing.T, mocks *Mocks) svc.Services {
+	return svc.Services{
+		Communicator: mocks.communicator,
+		Logger:       mocks.logger,
+		Config: &types.Config{
+			Process: struct {
+				UploadDir string `yaml:"uploadDir"`
+			}{
+				UploadDir: "./uploads",
+			},
+		},
+		Repositories: &repositories.Repositories{
+			Jobs:  mocks.jobsRepo,
+			Files: mocks.filesRepo,
+		},
+		Processor: mocks.processor,
+	}
 }

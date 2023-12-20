@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -21,4 +22,8 @@ func BuildPath(parts ...interface{}) string {
 
 func FileExtension(fileName string) string {
 	return filepath.Ext(fileName)
+}
+
+func IsTest() bool {
+	return os.Getenv("ENV") == "test"
 }

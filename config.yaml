@@ -6,7 +6,7 @@ server:
   host: 0.0.0.0
 
 app:
-  name: imagewizard
+  name: cnvrt
   jobFlushTimeout: 3600 # seconds
 
 firebase:

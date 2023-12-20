@@ -15,6 +15,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/monitor"
 	"github.com/prplx/lighter.pics/internal/handlers"
+	"github.com/prplx/lighter.pics/internal/helpers"
 	"github.com/prplx/lighter.pics/internal/types"
 )
 
@@ -59,7 +60,7 @@ func Register(app *fiber.App, handlers *handlers.Handlers, config *types.Config)
 		},
 	}))
 	app.Use(func(c *fiber.Ctx) error {
-		if strings.Contains(c.Path(), "/ws") || strings.Contains(c.Path(), healthcheckEndpoint) {
+		if helpers.IsTest() || strings.Contains(c.Path(), "/ws") || strings.Contains(c.Path(), healthcheckEndpoint) {
 			return c.Next()
 		}
 

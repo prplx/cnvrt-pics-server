@@ -1,0 +1,36 @@
+name: CI Checks
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21.x'
+      - name: Install Dependencies
+        run: |
+          touch .envrc
+          make install
+      - name: Test
+        run: make test
+      - name: Generate Report
+        run: make report
+      - name: Upload Report
+        run: |
+          mkdir reports
+          cp coverage.html reports/.
+      - name: Archive Report
+        uses: actions/upload-artifact@v2
+        with:
+          name: coverage-report
+          path: reports
