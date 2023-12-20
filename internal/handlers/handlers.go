@@ -5,9 +5,9 @@ import (
 	"os"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/prplx/lighter.pics/internal/services"
-	"github.com/prplx/lighter.pics/internal/types"
-	"github.com/prplx/lighter.pics/internal/validator"
+	"github.com/prplx/cnvrt/internal/services"
+	"github.com/prplx/cnvrt/internal/types"
+	"github.com/prplx/cnvrt/internal/validator"
 )
 
 type Handlers struct {

@@ -14,9 +14,9 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/basicauth"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/monitor"
-	"github.com/prplx/lighter.pics/internal/handlers"
-	"github.com/prplx/lighter.pics/internal/helpers"
-	"github.com/prplx/lighter.pics/internal/types"
+	"github.com/prplx/cnvrt/internal/handlers"
+	"github.com/prplx/cnvrt/internal/helpers"
+	"github.com/prplx/cnvrt/internal/types"
 )
 
 const (

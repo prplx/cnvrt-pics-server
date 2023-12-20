@@ -1,19 +1,20 @@
-package validator
+package validator_test
 
 import (
 	"testing"
 
+	"github.com/prplx/cnvrt/internal/validator"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestValidator_NewValidator__should_be_valid_when_created(t *testing.T) {
-	validator := NewValidator()
+	validator := validator.NewValidator()
 	assert.Empty(t, validator.Errors)
 	assert.True(t, validator.Valid())
 }
 
 func TestValidator_AddError__should_not_be_valid_when_called_with_falsy_argument(t *testing.T) {
-	validator := NewValidator()
+	validator := validator.NewValidator()
 	validator.Check(false, "key", "message")
 
 	assert.False(t, validator.Valid())

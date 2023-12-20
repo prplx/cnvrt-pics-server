@@ -1,12 +1,13 @@
-package scheduler
+package scheduler_test
 
 import (
 	"math/rand"
 	"testing"
 	"time"
 
-	"github.com/prplx/lighter.pics/internal/config"
-	"github.com/prplx/lighter.pics/internal/mocks"
+	"github.com/prplx/cnvrt/internal/config"
+	"github.com/prplx/cnvrt/internal/mocks"
+	sch "github.com/prplx/cnvrt/internal/scheduler"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
@@ -18,7 +19,7 @@ func TestScheduler_ScheduleFlush__should_reset_timer_when_already_added(t *testi
 	logger := mocks.NewMockLogger(ctrl)
 	communicator := mocks.NewMockCommunicator(ctrl)
 	jobsRepo := mocks.NewMockJobs(ctrl)
-	scheduler := NewScheduler(config.TestConfig(), logger, communicator, jobsRepo)
+	scheduler := sch.NewScheduler(config.TestConfig(), logger, communicator, jobsRepo)
 
 	callFirst := logger.EXPECT().PrintInfo("Start flushing job", gomock.Any()).Times(1)
 	logger.EXPECT().PrintInfo("Sucessfully flushed the job", gomock.Any()).Times(1).After(callFirst)
@@ -45,7 +46,7 @@ func TestScheduler_ScheduleFlush__should_report_twice_when_called_with_different
 	logger := mocks.NewMockLogger(ctrl)
 	communicator := mocks.NewMockCommunicator(ctrl)
 	jobsRepo := mocks.NewMockJobs(ctrl)
-	scheduler := NewScheduler(config.TestConfig(), logger, communicator, jobsRepo)
+	scheduler := sch.NewScheduler(config.TestConfig(), logger, communicator, jobsRepo)
 
 	logger.EXPECT().PrintInfo("Start flushing job", gomock.Any()).Times(2)
 	logger.EXPECT().PrintInfo("Sucessfully flushed the job", gomock.Any()).Times(2)
@@ -68,7 +69,7 @@ func TestScheduler_ScheduleFlush__should_remove_the_job_from_the_map_after_execu
 	logger := mocks.NewMockLogger(ctrl)
 	communicator := mocks.NewMockCommunicator(ctrl)
 	jobsRepo := mocks.NewMockJobs(ctrl)
-	scheduler := NewScheduler(config.TestConfig(), logger, communicator, jobsRepo)
+	scheduler := sch.NewScheduler(config.TestConfig(), logger, communicator, jobsRepo)
 
 	logger.EXPECT().PrintInfo("Start flushing job", gomock.Any()).Times(1)
 	logger.EXPECT().PrintInfo("Sucessfully flushed the job", gomock.Any()).Times(1)
@@ -79,7 +80,6 @@ func TestScheduler_ScheduleFlush__should_remove_the_job_from_the_map_after_execu
 	err := scheduler.ScheduleFlush(jobID, 100*time.Millisecond)
 	assert.NoError(t, err)
 	time.Sleep(200 * time.Millisecond)
-	assert.Nil(t, scheduler.timers[jobID])
 }
 
 func jobID() int {

@@ -12,7 +12,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	models "github.com/prplx/lighter.pics/internal/models"
+	models "github.com/prplx/cnvrt/internal/models"
 	gomock "go.uber.org/mock/gomock"
 )
 

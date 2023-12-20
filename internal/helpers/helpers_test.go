@@ -1,7 +1,9 @@
-package helpers
+package helpers_test
 
 import (
 	"testing"
+
+	"github.com/prplx/cnvrt/internal/helpers"
 )
 
 func TestFileNameWithoutExtension(t *testing.T) {
@@ -29,7 +31,7 @@ func TestFileNameWithoutExtension(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			actual := FileNameWithoutExtension(tc.fileName)
+			actual := helpers.FileNameWithoutExtension(tc.fileName)
 			if actual != tc.expected {
 				t.Errorf("expected %q, but got %q", tc.expected, actual)
 			}
@@ -77,7 +79,7 @@ func TestBuildPath(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			actual := BuildPath(tc.parts...)
+			actual := helpers.BuildPath(tc.parts...)
 			if actual != tc.expected {
 				t.Errorf("expected %q, but got %q", tc.expected, actual)
 			}

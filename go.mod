@@ -1,4 +1,4 @@
-module github.com/prplx/lighter.pics
+module github.com/prplx/cnvrt
 
 go 1.21
 

@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/prplx/lighter.pics/internal/types"
+	"github.com/prplx/cnvrt/internal/types"
 
 	"github.com/gofiber/contrib/websocket"
 )

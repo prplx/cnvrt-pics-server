@@ -4,7 +4,7 @@ import (
 	"flag"
 	"os"
 
-	"github.com/prplx/lighter.pics/internal/types"
+	"github.com/prplx/cnvrt/internal/types"
 	"gopkg.in/yaml.v2"
 )
 

@@ -7,17 +7,17 @@ import (
 	"os"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/prplx/lighter.pics/internal/archiver"
-	communicator "github.com/prplx/lighter.pics/internal/communicator/communicatorwebsocket"
-	"github.com/prplx/lighter.pics/internal/config"
-	"github.com/prplx/lighter.pics/internal/handlers"
-	"github.com/prplx/lighter.pics/internal/jsonlog"
-	"github.com/prplx/lighter.pics/internal/pg"
-	processor "github.com/prplx/lighter.pics/internal/processor/processorgovips"
-	"github.com/prplx/lighter.pics/internal/repositories"
-	"github.com/prplx/lighter.pics/internal/router"
-	"github.com/prplx/lighter.pics/internal/scheduler"
-	"github.com/prplx/lighter.pics/internal/services"
+	"github.com/prplx/cnvrt/internal/archiver"
+	communicator "github.com/prplx/cnvrt/internal/communicator/communicatorwebsocket"
+	"github.com/prplx/cnvrt/internal/config"
+	"github.com/prplx/cnvrt/internal/handlers"
+	"github.com/prplx/cnvrt/internal/jsonlog"
+	"github.com/prplx/cnvrt/internal/pg"
+	processor "github.com/prplx/cnvrt/internal/processor/processorgovips"
+	"github.com/prplx/cnvrt/internal/repositories"
+	"github.com/prplx/cnvrt/internal/router"
+	"github.com/prplx/cnvrt/internal/scheduler"
+	"github.com/prplx/cnvrt/internal/services"
 )
 
 func main() {

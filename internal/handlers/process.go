@@ -10,9 +10,9 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pkg/errors"
-	"github.com/prplx/lighter.pics/internal/helpers"
-	"github.com/prplx/lighter.pics/internal/types"
-	"github.com/prplx/lighter.pics/internal/validator"
+	"github.com/prplx/cnvrt/internal/helpers"
+	"github.com/prplx/cnvrt/internal/types"
+	"github.com/prplx/cnvrt/internal/validator"
 )
 
 func (h *Handlers) HandleProcessJob(ctx *fiber.Ctx) error {

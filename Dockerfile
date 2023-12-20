@@ -5,14 +5,16 @@ ARG VIPS_VERSION=8.14.5
 ARG CGIF_VERSION=0.3.0
 ARG LIBSPNG_VERSION=0.7.3
 ARG TARGETARCH
+ARG db_dsn
 
 ENV PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
+ENV DB_DSN=$db_dsn
 
 # libaom3 is in Debian bullseye-backports
 RUN echo 'deb http://deb.debian.org/debian bullseye-backports main' > /etc/apt/sources.list.d/backports.list
 
 # Installs libvips + required libraries
-RUN DEBIAN_FRONTEND=noninteractive \
+RUN DEBIAN_FRONTEND=noninteractive \ 
   apt-get update && \
   apt-get install --no-install-recommends -y \
   ca-certificates \
@@ -56,13 +58,15 @@ RUN DEBIAN_FRONTEND=noninteractive \
     -Dintrospection=false && \
     ninja -C _build && \
     ninja -C _build install && \
+    curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-amd64.tar.gz | tar xvz && \
+    mv migrate $GOPATH/bin/migrate && \
   ldconfig && \
   rm -rf /usr/local/lib/python* && \
   rm -rf /usr/local/lib/libvips-cpp.* && \
   rm -rf /usr/local/lib/*.a && \
   rm -rf /usr/local/lib/*.la
 
-WORKDIR ${GOPATH}/src/github.com/prplx/imagewizard
+WORKDIR ${GOPATH}/src/github.com/prplx/cnvrt
 
 COPY go.mod .
 COPY go.sum .
@@ -71,8 +75,9 @@ RUN go mod download
 
 COPY . .
 
-# RUN if [ "$TARGETARCH" = "amd64" ]; then go test ./...; fi
-RUN go build -o ${GOPATH}/bin/imagewizard ./cmd/api/main.go
+RUN if [ "$TARGETARCH" = "amd64" ]; then touch .envrc && make test; fi
+RUN go build -o ${GOPATH}/bin/cnvrt ./cmd/api/main.go
+RUN make db/migrate_up
 
 FROM debian:bullseye-slim
 
@@ -94,7 +99,7 @@ RUN DEBIAN_FRONTEND=noninteractive \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-COPY --from=builder /go/bin/imagewizard /usr/local/bin/imagewizard
+COPY --from=builder /go/bin/cnvrt /usr/local/bin/cnvrt
 COPY config.yaml /app/config.yaml
 
 ENV VIPS_WARNING=0
@@ -106,7 +111,7 @@ RUN chmod 755 /app
 # use unprivileged user
 USER nobody
 
-CMD /usr/local/bin/imagewizard \
+CMD /usr/local/bin/cnvrt \
   -env=${ENV} \
   -port=${PORT} \
   -upload-dir=${UPLOAD_DIR} \

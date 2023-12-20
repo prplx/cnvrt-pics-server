@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/prplx/lighter.pics/internal/models"
+	"github.com/prplx/cnvrt/internal/models"
 )
 
 type Jobs interface {

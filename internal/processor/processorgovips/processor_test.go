@@ -1,4 +1,4 @@
-package processorgovips
+package processorgovips_test
 
 import (
 	"context"
@@ -7,8 +7,9 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/prplx/lighter.pics/internal/helpers"
-	"github.com/prplx/lighter.pics/internal/mocks"
+	"github.com/prplx/cnvrt/internal/helpers"
+	"github.com/prplx/cnvrt/internal/mocks"
+	processor "github.com/prplx/cnvrt/internal/processor/processorgovips"
 
 	"math/rand"
 
@@ -16,9 +17,9 @@ import (
 	"image"
 	"image/png"
 
-	"github.com/prplx/lighter.pics/internal/config"
-	"github.com/prplx/lighter.pics/internal/models"
-	"github.com/prplx/lighter.pics/internal/types"
+	"github.com/prplx/cnvrt/internal/config"
+	"github.com/prplx/cnvrt/internal/models"
+	"github.com/prplx/cnvrt/internal/types"
 	"go.uber.org/mock/gomock"
 )
 
@@ -30,7 +31,7 @@ func TestProcessor_Process_should_communicate_about_processing_error_when_gettin
 	comm := mocks.NewMockCommunicator(ctrl)
 	operationsRepo := mocks.NewMockOperations(ctrl)
 	scheduler := mocks.NewMockScheduler(ctrl)
-	processor := NewProcessor(config.TestConfig(), operationsRepo, comm, logger, scheduler)
+	processor := processor.NewProcessor(config.TestConfig(), operationsRepo, comm, logger, scheduler)
 	ctx := context.Background()
 	input := processInput()
 
@@ -50,7 +51,7 @@ func TestProcessor_Process_should_communicate_about_processing_success_if_operat
 	comm := mocks.NewMockCommunicator(ctrl)
 	operationsRepo := mocks.NewMockOperations(ctrl)
 	scheduler := mocks.NewMockScheduler(ctrl)
-	processor := NewProcessor(config.TestConfig(), operationsRepo, comm, logger, scheduler)
+	processor := processor.NewProcessor(config.TestConfig(), operationsRepo, comm, logger, scheduler)
 	ctx := context.Background()
 	input := processInput()
 	resultFileName := uuid.NewString() + "." + "webp"
@@ -81,7 +82,7 @@ func TestProcessor_Process_should_convert_file_if_operation_exists_but_the_file_
 	comm := mocks.NewMockCommunicator(ctrl)
 	operationsRepo := mocks.NewMockOperations(ctrl)
 	scheduler := mocks.NewMockScheduler(ctrl)
-	processor := NewProcessor(config.TestConfig(), operationsRepo, comm, logger, scheduler)
+	processor := processor.NewProcessor(config.TestConfig(), operationsRepo, comm, logger, scheduler)
 	ctx := context.Background()
 	input := processInput()
 	resultFileName := uuid.NewString() + "." + "webp"
@@ -116,7 +117,7 @@ func TestProcessor_Process_should_convert_file_if_neither_operation_nor_file_loc
 	comm := mocks.NewMockCommunicator(ctrl)
 	operationsRepo := mocks.NewMockOperations(ctrl)
 	scheduler := mocks.NewMockScheduler(ctrl)
-	processor := NewProcessor(config.TestConfig(), operationsRepo, comm, logger, scheduler)
+	processor := processor.NewProcessor(config.TestConfig(), operationsRepo, comm, logger, scheduler)
 	ctx := context.Background()
 	input := processInput()
 

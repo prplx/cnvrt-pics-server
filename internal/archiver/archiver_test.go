@@ -1,4 +1,4 @@
-package archiver
+package archiver_test
 
 import (
 	"errors"
@@ -6,13 +6,14 @@ import (
 	"os"
 	"testing"
 
-	"github.com/prplx/lighter.pics/internal/mocks"
+	"github.com/prplx/cnvrt/internal/mocks"
 
 	"math/rand"
 
-	"github.com/prplx/lighter.pics/internal/config"
-	"github.com/prplx/lighter.pics/internal/helpers"
-	"github.com/prplx/lighter.pics/internal/models"
+	"github.com/prplx/cnvrt/internal/archiver"
+	"github.com/prplx/cnvrt/internal/config"
+	"github.com/prplx/cnvrt/internal/helpers"
+	"github.com/prplx/cnvrt/internal/models"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
@@ -25,7 +26,7 @@ func TestArchiver_Archive__should_report_and_return_when_communicator_returns_er
 	logger := mocks.NewMockLogger(ctrl)
 	comm := mocks.NewMockCommunicator(ctrl)
 	filesRepo := mocks.NewMockFiles(ctrl)
-	archiver := NewArchiver(config.TestConfig(), filesRepo, logger, comm)
+	archiver := archiver.NewArchiver(config.TestConfig(), filesRepo, logger, comm)
 	logger.EXPECT().PrintError(gomock.Any(), gomock.Any()).AnyTimes()
 
 	comm.EXPECT().SendStartArchiving(jobID).Return(errors.New("Communication problem")).Times(1)
@@ -46,7 +47,7 @@ func TestArchiver_Archive__should_report_and_return_when_files_repository_return
 	logger := mocks.NewMockLogger(ctrl)
 	comm := mocks.NewMockCommunicator(ctrl)
 	filesRepo := mocks.NewMockFiles(ctrl)
-	archiver := NewArchiver(config.TestConfig(), filesRepo, logger, comm)
+	archiver := archiver.NewArchiver(config.TestConfig(), filesRepo, logger, comm)
 	logger.EXPECT().PrintError(gomock.Any(), gomock.Any()).AnyTimes()
 
 	comm.EXPECT().SendStartArchiving(jobID).Return(nil).Times(1)
@@ -68,7 +69,7 @@ func TestArchiver_Archive__should_successfully_zip_files_and_communicate_when_co
 	logger := mocks.NewMockLogger(ctrl)
 	comm := mocks.NewMockCommunicator(ctrl)
 	filesRepo := mocks.NewMockFiles(ctrl)
-	archiver := NewArchiver(config.TestConfig(), filesRepo, logger, comm)
+	archiver := archiver.NewArchiver(config.TestConfig(), filesRepo, logger, comm)
 
 	logger.EXPECT().PrintError(gomock.Any(), gomock.Any()).AnyTimes()
 	comm.EXPECT().SendStartArchiving(jobID).Return(nil).Times(1)

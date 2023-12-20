@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/prplx/lighter.pics/internal/types"
+	"github.com/prplx/cnvrt/internal/types"
 )
 
 // Level represents the severity level of a log entry.

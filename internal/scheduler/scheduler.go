@@ -7,10 +7,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/prplx/lighter.pics/internal/helpers"
-	"github.com/prplx/lighter.pics/internal/repositories"
-	"github.com/prplx/lighter.pics/internal/services"
-	"github.com/prplx/lighter.pics/internal/types"
+	"github.com/prplx/cnvrt/internal/helpers"
+	"github.com/prplx/cnvrt/internal/repositories"
+	"github.com/prplx/cnvrt/internal/services"
+	"github.com/prplx/cnvrt/internal/types"
 )
 
 type Scheduler struct {

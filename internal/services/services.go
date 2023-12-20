@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/gofiber/contrib/websocket"
-	"github.com/prplx/lighter.pics/internal/repositories"
-	"github.com/prplx/lighter.pics/internal/types"
+	"github.com/prplx/cnvrt/internal/repositories"
+	"github.com/prplx/cnvrt/internal/types"
 )
 
 type Communicator interface {

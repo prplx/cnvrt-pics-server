@@ -14,7 +14,7 @@ import (
 	time "time"
 
 	websocket "github.com/gofiber/contrib/websocket"
-	types "github.com/prplx/lighter.pics/internal/types"
+	types "github.com/prplx/cnvrt/internal/types"
 	gomock "go.uber.org/mock/gomock"
 )
 

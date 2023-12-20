@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/prplx/lighter.pics/internal/validator"
+	"github.com/prplx/cnvrt/internal/validator"
 )
 
 func (h *Handlers) HandleArchiveJob(ctx *fiber.Ctx) error {
