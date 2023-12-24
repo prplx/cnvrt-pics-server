@@ -17,16 +17,18 @@ const (
 )
 
 type Communicator struct {
-	mu                   sync.Mutex
-	connections          map[int]types.WebsocketConnection
-	startProcessingCache map[int]types.AnyMap
+	mu                     sync.Mutex
+	connections            map[int]types.WebsocketConnection
+	startProcessingCache   map[int]types.AnyMap
+	successProcessingCache map[int]types.AnyMap
 }
 
 func NewCommunicator() *Communicator {
 	return &Communicator{
-		mu:                   sync.Mutex{},
-		connections:          make(map[int]types.WebsocketConnection),
-		startProcessingCache: make(map[int]types.AnyMap),
+		mu:                     sync.Mutex{},
+		connections:            make(map[int]types.WebsocketConnection),
+		startProcessingCache:   make(map[int]types.AnyMap),
+		successProcessingCache: make(map[int]types.AnyMap),
 	}
 }
 
@@ -37,11 +39,18 @@ func (c *Communicator) AddClient(jobID int, connection types.WebsocketConnection
 	if conn != nil {
 		return
 	}
+
 	c.connections[jobID] = connection
-	message := c.startProcessingCache[jobID]
-	if message != nil {
-		connection.WriteJSON(message)
+	startProcessingMessage := c.startProcessingCache[jobID]
+	if startProcessingMessage != nil {
+		connection.WriteJSON(startProcessingMessage)
 		delete(c.startProcessingCache, jobID)
+	}
+
+	successProcessingMessage := c.successProcessingCache[jobID]
+	if successProcessingMessage != nil {
+		connection.WriteJSON(successProcessingMessage)
+		delete(c.successProcessingCache, jobID)
 	}
 }
 
@@ -72,25 +81,19 @@ func (c *Communicator) SendStartProcessing(jobID int, fileID int, fileName strin
 
 func (c *Communicator) SendErrorProcessing(jobID int, fileID int, fileName string) error {
 	conn := c.connections[jobID]
-	if conn == nil {
-		return nil
-	}
-
-	return conn.WriteJSON(types.AnyMap{
+	message := types.AnyMap{
 		"operation": ProcessingOperation,
 		"event":     ErrorEvent,
 		"fileName":  fileName,
 		"fileId":    fileID,
-	})
+	}
+
+	return conn.WriteJSON(message)
 }
 
 func (c *Communicator) SendSuccessProcessing(jobID int, result types.SuccessResult) error {
 	conn := c.connections[jobID]
-	if conn == nil {
-		return nil
-	}
-
-	return conn.WriteJSON(types.AnyMap{
+	message := types.AnyMap{
 		"operation":      ProcessingOperation,
 		"event":          SuccessEvent,
 		"fileId":         result.SourceFileID,
@@ -100,7 +103,15 @@ func (c *Communicator) SendSuccessProcessing(jobID int, result types.SuccessResu
 		"targetFileSize": strconv.FormatInt(result.TargetFileSize, 10),
 		"width":          result.Width,
 		"height":         result.Height,
-	})
+	}
+	if conn == nil {
+		c.mu.Lock()
+		defer c.mu.Unlock()
+		c.successProcessingCache[jobID] = message
+		return nil
+	}
+
+	return conn.WriteJSON(message)
 }
 
 func (c *Communicator) SendStartArchiving(jobID int) error {

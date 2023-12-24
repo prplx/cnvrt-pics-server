@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/gofiber/contrib/websocket"
@@ -27,7 +26,6 @@ func (h *Handlers) HandleWebsocket(c types.WebsocketConnection) {
 		messageType, _, err := c.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				fmt.Println("read error:", err)
 				h.services.Logger.PrintError(err, types.AnyMap{
 					"message":     "error reading message",
 					"messageType": messageType,

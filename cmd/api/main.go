@@ -58,7 +58,7 @@ func main() {
 	})
 
 	handlers := handlers.NewHandlers(services)
-	router.Register(app, handlers, config)
+	router.Register(app, handlers, config, db.Pool)
 
 	log.Fatal(app.Listen(fmt.Sprintf("%s:%d", config.Server.Host, config.Server.Port)))
 }

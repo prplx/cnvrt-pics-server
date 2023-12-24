@@ -53,7 +53,7 @@ func setup(t *testing.T, mocks *Mocks) (*fiber.App, *svc.Services) {
 	services := getServices(t, mocks)
 	handlers := handlers.NewHandlers(&services)
 
-	router.Register(app, handlers, services.Config)
+	router.Register(app, handlers, services.Config, nil)
 	return app, &services
 }
 
