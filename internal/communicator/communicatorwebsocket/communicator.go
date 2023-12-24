@@ -5,8 +5,6 @@ import (
 	"sync"
 
 	"github.com/prplx/cnvrt/internal/types"
-
-	"github.com/gofiber/contrib/websocket"
 )
 
 const (
@@ -20,20 +18,19 @@ const (
 
 type Communicator struct {
 	mu                   sync.Mutex
-	connections          map[int]*websocket.Conn
+	connections          map[int]types.WebsocketConnection
 	startProcessingCache map[int]types.AnyMap
 }
 
-func NewCommunicator(config *types.Config) *Communicator {
-
+func NewCommunicator() *Communicator {
 	return &Communicator{
 		mu:                   sync.Mutex{},
-		connections:          make(map[int]*websocket.Conn),
+		connections:          make(map[int]types.WebsocketConnection),
 		startProcessingCache: make(map[int]types.AnyMap),
 	}
 }
 
-func (c *Communicator) AddClient(jobID int, connection *websocket.Conn) {
+func (c *Communicator) AddClient(jobID int, connection types.WebsocketConnection) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	conn := c.connections[jobID]

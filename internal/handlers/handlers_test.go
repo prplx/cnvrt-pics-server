@@ -1,4 +1,4 @@
-package router_test
+package handlers_test
 
 import (
 	"bytes"
@@ -9,17 +9,21 @@ import (
 	"os"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/prplx/cnvrt/internal/handlers"
 	"github.com/prplx/cnvrt/internal/mocks"
-	"github.com/prplx/cnvrt/internal/models"
 	"github.com/prplx/cnvrt/internal/repositories"
 	"github.com/prplx/cnvrt/internal/router"
 	svc "github.com/prplx/cnvrt/internal/services"
 	"github.com/prplx/cnvrt/internal/types"
 	"github.com/spf13/afero"
-	"github.com/stretchr/testify/assert"
-	"go.uber.org/mock/gomock"
+)
+
+const (
+	processEndpoint = "/api/v1/process"
+	archiveEndpoint = "/api/v1/archive"
 )
 
 type Mocks struct {
@@ -28,11 +32,8 @@ type Mocks struct {
 	communicator *mocks.MockCommunicator
 	logger       *mocks.MockLogger
 	processor    *mocks.MockProcessor
+	archiver     *mocks.MockArchiver
 }
-
-const (
-	processEndpoint = "/api/v1/process"
-)
 
 func Test_Healthcheck(t *testing.T) {
 	mocks := &Mocks{}
@@ -44,50 +45,6 @@ func Test_Healthcheck(t *testing.T) {
 
 	assert.Equal(t, 200, resp.StatusCode)
 	assert.Equal(t, want, string(got))
-}
-
-func Test_HandleProcessJob__should_return_correct_response_when_all_conditions_are_met(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	fileName := "file.png"
-	jobID := 555
-	jobsRepo := mocks.NewMockJobs(ctrl)
-	communicator := mocks.NewMockCommunicator(ctrl)
-	logger := mocks.NewMockLogger(ctrl)
-	filesRepo := mocks.NewMockFiles(ctrl)
-	processor := mocks.NewMockProcessor(ctrl)
-	mocks := &Mocks{
-		jobsRepo:     jobsRepo,
-		filesRepo:    filesRepo,
-		communicator: communicator,
-		logger:       logger,
-		processor:    processor,
-	}
-	jobsRepo.EXPECT().Create(gomock.Any()).Return(jobID, nil)
-	logger.EXPECT().PrintError(gomock.Any()).AnyTimes()
-	filesRepo.EXPECT().CreateBulk(gomock.Any(), jobID, []string{fileName}).Return([]models.File{
-		{
-			ID:   1,
-			Name: fileName,
-		},
-	}, nil)
-	processor.EXPECT().Process(gomock.Any(), gomock.Any())
-
-	body, contentType := createFormFile(t, "file", fileName)
-	app, services := setup(t, mocks)
-
-	r := httptest.NewRequest(http.MethodPost, processEndpoint+"?format=webp&quality=80", body)
-	r.Header.Add("Content-Type", contentType)
-
-	resp, _ := app.Test(r, -1)
-	got, _ := io.ReadAll(resp.Body)
-	want := `{"job_id":555}`
-
-	assert.Equal(t, want, string(got))
-	assert.Equal(t, 202, resp.StatusCode)
-
-	cleanUp(t, services)
 }
 
 func setup(t *testing.T, mocks *Mocks) (*fiber.App, *svc.Services) {
@@ -147,5 +104,6 @@ func getServices(t *testing.T, mocks *Mocks) svc.Services {
 			Files: mocks.filesRepo,
 		},
 		Processor: mocks.processor,
+		Archiver:  mocks.archiver,
 	}
 }

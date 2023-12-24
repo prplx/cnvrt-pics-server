@@ -13,7 +13,6 @@ import (
 	reflect "reflect"
 	time "time"
 
-	websocket "github.com/gofiber/contrib/websocket"
 	types "github.com/prplx/cnvrt/internal/types"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -42,7 +41,7 @@ func (m *MockCommunicator) EXPECT() *MockCommunicatorMockRecorder {
 }
 
 // AddClient mocks base method.
-func (m *MockCommunicator) AddClient(jobID int, connection *websocket.Conn) {
+func (m *MockCommunicator) AddClient(jobID int, connection types.WebsocketConnection) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "AddClient", jobID, connection)
 }

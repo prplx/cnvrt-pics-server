@@ -1,6 +1,6 @@
 include .envrc
 
-.PHONY: run run/live test audit tidy db/migrate_up db/migrate_down db/migrate_force db/migrate_create docker/build docker/run mocks report install
+.PHONY: run run/live test audit tidy db/migrate_up db/migrate_down db/migrate_force db/migrate_create docker/build docker/run mocks report install test/coverage
 
 MAIN_PACKAGE_PATH := ./cmd/api
 BINARY_NAME := cnvrt
@@ -11,8 +11,11 @@ build:
 run:
 	@go run ./cmd/api/main.go -db-dsn=${DB_DSN} -metrics-user=${METRICS_USER} -metrics-password=${METRICS_PASSWORD} -firebase-project-id=${FIREBASE_PROJECT_ID}
 
-test:
+test/coverage:
 	@ENV=test go test -v ./... -coverprofile=coverage.out
+
+test:
+	@ENV=test go test -v ./...
 
 install:
 	@go get -u ./...
@@ -41,6 +44,7 @@ tidy:
 mocks:
 	mockgen -source=internal/repositories/repositories.go --destination=internal/mocks/repositories.go --package=mocks
 	mockgen -source=internal/services/services.go --destination=internal/mocks/services.go --package=mocks
+	mockgen -source=internal/types/types.go --destination=internal/mocks/types.go --package=mocks
 
 db/migrate_up:
 	migrate -path=./migrations -database=${DB_DSN} up

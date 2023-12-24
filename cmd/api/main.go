@@ -39,7 +39,7 @@ func main() {
 
 	logger := jsonlog.NewLogger(os.Stdout, jsonlog.LevelInfo)
 	repositories := repositories.NewRepositories(db.Pool)
-	communicator := communicator.NewCommunicator(config)
+	communicator := communicator.NewCommunicator()
 	archiver := archiver.NewArchiver(config, repositories.Files, logger, communicator)
 	scheduler := scheduler.NewScheduler(config, logger, communicator, repositories.Jobs)
 	processor := processor.NewProcessor(config, repositories.Operations, communicator, logger, scheduler)

@@ -93,7 +93,9 @@ func Register(app *fiber.App, handlers *handlers.Handlers, config *types.Config)
 	v1.Post("/process", handlers.HandleProcessJob)
 	v1.Post("/process/:jobID", handlers.HandleProcessFile)
 	v1.Post("/archive/:jobID", handlers.HandleArchiveJob)
-	v1.Get("/ws/:jobID", websocket.New(handlers.HandleWebsocket))
+	v1.Get("/ws/:jobID", websocket.New(func(c *websocket.Conn) {
+		handlers.HandleWebsocket(c)
+	}))
 }
 
 func requireAppCheck(appCheck *appcheck.Client, appCheckToken string) error {

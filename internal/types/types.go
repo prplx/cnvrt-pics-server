@@ -50,3 +50,10 @@ type SuccessResult struct {
 }
 
 type AnyMap map[string]any
+
+type WebsocketConnection interface {
+	ReadMessage() (messageType int, p []byte, err error)
+	Close() error
+	Params(key string, defaultValue ...string) string
+	WriteJSON(v interface{}) error
+}

@@ -140,7 +140,6 @@ func (h *Handlers) HandleProcessFile(ctx *fiber.Ctx) error {
 		})
 		return ctx.SendStatus(http.StatusBadRequest)
 	}
-
 	reqFileWidth, err := strconv.Atoi(ctx.Query("width"))
 	if err != nil {
 		h.services.Logger.PrintError(err, types.AnyMap{
