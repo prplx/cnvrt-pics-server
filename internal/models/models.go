@@ -1,16 +1,18 @@
 package models
 
+import "time"
+
 type File struct {
 	ID              int
 	JobID           int
 	Name            string
-	CreatedAt       string
+	CreatedAt       time.Time
 	LatestOperation *Operation
 }
 
 type Job struct {
 	ID        int
-	CreatedAt string
+	CreatedAt time.Time
 }
 
 type Operation struct {
@@ -22,5 +24,12 @@ type Operation struct {
 	FileName  string
 	Width     int
 	Height    int
-	CreatedAt string
+	CreatedAt time.Time
+}
+
+type PlannedFlush struct {
+	ID        int
+	JobID     int
+	FlushAt   time.Time
+	CreatedAt time.Time
 }

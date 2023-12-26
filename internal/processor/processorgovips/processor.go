@@ -133,7 +133,12 @@ func (p *Processor) Process(ctx context.Context, input types.ImageProcessInput) 
 			return
 		}
 
-		p.scheduler.ScheduleFlush(jobID, time.Duration(p.config.App.JobFlushTimeout)*time.Second)
+		err = p.scheduler.ScheduleFlush(jobID, time.Duration(p.config.App.JobFlushTimeout)*time.Second)
+		if err != nil {
+			p.logger.PrintError(err, types.AnyMap{
+				"job_id": jobID,
+			})
+		}
 	}
 
 	sourceInfo, err := os.Stat(helpers.BuildPath(p.config.Process.UploadDir, jobID, fileName))

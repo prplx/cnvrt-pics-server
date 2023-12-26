@@ -11,6 +11,7 @@ package mocks
 import (
 	context "context"
 	reflect "reflect"
+	time "time"
 
 	models "github.com/prplx/cnvrt/internal/models"
 	gomock "go.uber.org/mock/gomock"
@@ -202,4 +203,57 @@ func (m *MockOperations) GetLatestOperation(ctx context.Context, jobID, fileID s
 func (mr *MockOperationsMockRecorder) GetLatestOperation(ctx, jobID, fileID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLatestOperation", reflect.TypeOf((*MockOperations)(nil).GetLatestOperation), ctx, jobID, fileID)
+}
+
+// MockPlannedFlushes is a mock of PlannedFlushes interface.
+type MockPlannedFlushes struct {
+	ctrl     *gomock.Controller
+	recorder *MockPlannedFlushesMockRecorder
+}
+
+// MockPlannedFlushesMockRecorder is the mock recorder for MockPlannedFlushes.
+type MockPlannedFlushesMockRecorder struct {
+	mock *MockPlannedFlushes
+}
+
+// NewMockPlannedFlushes creates a new mock instance.
+func NewMockPlannedFlushes(ctrl *gomock.Controller) *MockPlannedFlushes {
+	mock := &MockPlannedFlushes{ctrl: ctrl}
+	mock.recorder = &MockPlannedFlushesMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockPlannedFlushes) EXPECT() *MockPlannedFlushesMockRecorder {
+	return m.recorder
+}
+
+// Create mocks base method.
+func (m *MockPlannedFlushes) Create(ctx context.Context, jobID int, flushAt time.Time) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", ctx, jobID, flushAt)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Create indicates an expected call of Create.
+func (mr *MockPlannedFlushesMockRecorder) Create(ctx, jobID, flushAt any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockPlannedFlushes)(nil).Create), ctx, jobID, flushAt)
+}
+
+// GetAll mocks base method.
+func (m *MockPlannedFlushes) GetAll(ctx context.Context) ([]*models.PlannedFlush, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAll", ctx)
+	ret0, _ := ret[0].([]*models.PlannedFlush)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAll indicates an expected call of GetAll.
+func (mr *MockPlannedFlushesMockRecorder) GetAll(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockPlannedFlushes)(nil).GetAll), ctx)
 }

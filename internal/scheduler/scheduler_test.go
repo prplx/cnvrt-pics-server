@@ -19,7 +19,8 @@ func TestScheduler_ScheduleFlush__should_reset_timer_when_already_added(t *testi
 	logger := mocks.NewMockLogger(ctrl)
 	communicator := mocks.NewMockCommunicator(ctrl)
 	jobsRepo := mocks.NewMockJobs(ctrl)
-	scheduler := sch.NewScheduler(config.TestConfig(), logger, communicator, jobsRepo)
+	plannedFlushesRepo := mocks.NewMockPlannedFlushes(ctrl)
+	scheduler := sch.NewScheduler(config.TestConfig(), logger, communicator, jobsRepo, plannedFlushesRepo)
 
 	callFirst := logger.EXPECT().PrintInfo("Start flushing job", gomock.Any()).Times(1)
 	logger.EXPECT().PrintInfo("Sucessfully flushed the job", gomock.Any()).Times(1).After(callFirst)
@@ -46,7 +47,8 @@ func TestScheduler_ScheduleFlush__should_report_twice_when_called_with_different
 	logger := mocks.NewMockLogger(ctrl)
 	communicator := mocks.NewMockCommunicator(ctrl)
 	jobsRepo := mocks.NewMockJobs(ctrl)
-	scheduler := sch.NewScheduler(config.TestConfig(), logger, communicator, jobsRepo)
+	plannedFlushesRepo := mocks.NewMockPlannedFlushes(ctrl)
+	scheduler := sch.NewScheduler(config.TestConfig(), logger, communicator, jobsRepo, plannedFlushesRepo)
 
 	logger.EXPECT().PrintInfo("Start flushing job", gomock.Any()).Times(2)
 	logger.EXPECT().PrintInfo("Sucessfully flushed the job", gomock.Any()).Times(2)
@@ -69,7 +71,8 @@ func TestScheduler_ScheduleFlush__should_remove_the_job_from_the_map_after_execu
 	logger := mocks.NewMockLogger(ctrl)
 	communicator := mocks.NewMockCommunicator(ctrl)
 	jobsRepo := mocks.NewMockJobs(ctrl)
-	scheduler := sch.NewScheduler(config.TestConfig(), logger, communicator, jobsRepo)
+	plannedFlushesRepo := mocks.NewMockPlannedFlushes(ctrl)
+	scheduler := sch.NewScheduler(config.TestConfig(), logger, communicator, jobsRepo, plannedFlushesRepo)
 
 	logger.EXPECT().PrintInfo("Start flushing job", gomock.Any()).Times(1)
 	logger.EXPECT().PrintInfo("Sucessfully flushed the job", gomock.Any()).Times(1)

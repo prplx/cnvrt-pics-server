@@ -3,6 +3,8 @@ package repositories
 import (
 	"context"
 
+	"time"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/prplx/cnvrt/internal/models"
 )
@@ -24,16 +26,23 @@ type Operations interface {
 	GetLatestOperation(ctx context.Context, jobID, fileID string) (*models.Operation, error)
 }
 
+type PlannedFlushes interface {
+	Create(ctx context.Context, jobID int, flushAt time.Time) (int, error)
+	GetAll(ctx context.Context) ([]*models.PlannedFlush, error)
+}
+
 type Repositories struct {
 	Jobs
 	Files
 	Operations
+	PlannedFlushes
 }
 
 func NewRepositories(pool *pgxpool.Pool) *Repositories {
 	return &Repositories{
-		Jobs:       NewJobsRepository(pool),
-		Files:      NewFilesRepository(pool),
-		Operations: NewOperationsRepository(pool),
+		Jobs:           NewJobsRepository(pool),
+		Files:          NewFilesRepository(pool),
+		Operations:     NewOperationsRepository(pool),
+		PlannedFlushes: NewPlannedFlushesRepository(pool),
 	}
 }

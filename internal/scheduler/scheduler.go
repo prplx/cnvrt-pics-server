@@ -3,6 +3,7 @@ package scheduler
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"sync"
 	"time"
@@ -14,22 +15,32 @@ import (
 )
 
 type Scheduler struct {
-	mu             sync.Mutex
-	timers         map[int]*time.Timer
-	config         *types.Config
-	logger         services.Logger
-	communitator   services.Communicator
-	jobsRepository repositories.Jobs
+	mu                       sync.Mutex
+	timers                   map[int]*time.Timer
+	config                   *types.Config
+	logger                   services.Logger
+	communitator             services.Communicator
+	jobsRepository           repositories.Jobs
+	plannedFlushesRepository repositories.PlannedFlushes
 }
 
-func NewScheduler(config *types.Config, l services.Logger, c services.Communicator, jr repositories.Jobs) *Scheduler {
-	return &Scheduler{
-		timers:         make(map[int]*time.Timer),
-		config:         config,
-		logger:         l,
-		communitator:   c,
-		jobsRepository: jr,
+func NewScheduler(config *types.Config, l services.Logger, c services.Communicator, jr repositories.Jobs, fr repositories.PlannedFlushes) *Scheduler {
+	scheduler := &Scheduler{
+		timers:                   make(map[int]*time.Timer),
+		config:                   config,
+		logger:                   l,
+		communitator:             c,
+		jobsRepository:           jr,
+		plannedFlushesRepository: fr,
 	}
+	err := scheduler.schedulePlannedFlushes()
+	if err != nil {
+		l.PrintError(errors.New("error while scheduling planned flushes"), types.AnyMap{
+			"error": err,
+		})
+	}
+
+	return scheduler
 }
 
 func (s *Scheduler) ScheduleFlush(jobID int, timeout time.Duration) error {
@@ -41,6 +52,18 @@ func (s *Scheduler) ScheduleFlush(jobID int, timeout time.Duration) error {
 		return nil
 	}
 
+	timeNowUTC := time.Now()
+	flushAt := timeNowUTC.Add(timeout).UTC()
+
+	_, err := s.plannedFlushesRepository.Create(context.Background(), jobID, flushAt)
+	if err != nil {
+		return err
+	}
+
+	return s.scheduleFlush(jobID, timeout)
+}
+
+func (s *Scheduler) scheduleFlush(jobID int, timeout time.Duration) error {
 	s.timers[jobID] = time.AfterFunc(timeout, func() {
 		s.mu.Lock()
 		defer s.mu.Unlock()
@@ -73,6 +96,29 @@ func (s *Scheduler) ScheduleFlush(jobID int, timeout time.Duration) error {
 			})
 		}
 	})
+
+	return nil
+}
+
+func (s *Scheduler) schedulePlannedFlushes() error {
+	plannedFlushes, err := s.plannedFlushesRepository.GetAll(context.Background())
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	if len(plannedFlushes) == 0 {
+		return nil
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	now := time.Now().UTC()
+	for _, flush := range plannedFlushes {
+		diff := flush.FlushAt.Sub(now)
+		s.scheduleFlush(flush.JobID, diff)
+	}
 
 	return nil
 }
