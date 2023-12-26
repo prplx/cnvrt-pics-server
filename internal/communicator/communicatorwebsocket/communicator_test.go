@@ -31,6 +31,42 @@ func Test_NewCommunicator__should_send_message_from_the_cache_when_the_client_is
 	comm.AddClient(jobID, connectionMock)
 }
 
+func Test_NewCommunicator__should_send_message_from_the_cache_for_multiple_files_when_the_client_is_not_connected_yet(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	jobID := 1
+	operations := []struct {
+		jobID    int
+		fileID   int
+		fileName string
+	}{
+		{jobID: jobID,
+			fileID:   1,
+			fileName: "test1.jpg"},
+		{jobID: jobID,
+			fileID:   2,
+			fileName: "test2.jpg"},
+		{jobID: jobID,
+			fileID:   3,
+			fileName: "test3.jpg"},
+	}
+	comm := communicator.NewCommunicator()
+	connectionMock := mocks.NewMockWebsocketConnection(ctrl)
+
+	for _, op := range operations {
+		connectionMock.EXPECT().WriteJSON(gomock.Eq(types.AnyMap{
+			"operation": communicator.ProcessingOperation,
+			"event":     communicator.StartedEvent,
+			"fileName":  op.fileName,
+			"fileId":    op.fileID,
+		})).Times(1).Return(nil)
+		comm.SendStartProcessing(op.jobID, op.fileID, op.fileName)
+	}
+
+	comm.AddClient(jobID, connectionMock)
+}
+
 func Test_NewCommunicator__should_send_start_processing_job_message_to_respective_connection(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
