@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/prplx/cnvrt/internal/mocks"
 	"github.com/prplx/cnvrt/internal/models"
@@ -47,6 +48,8 @@ func Test_HandleProcessJob__should_return_correct_response_when_all_conditions_a
 
 	r := httptest.NewRequest(http.MethodPost, processEndpoint+"?format=webp&quality=80", body)
 	r.Header.Add("Content-Type", contentType)
+
+	time.Sleep(1 * time.Second)
 
 	resp, _ := app.Test(r, -1)
 	got, _ := io.ReadAll(resp.Body)

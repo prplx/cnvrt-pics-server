@@ -30,6 +30,7 @@ func NewConfig(configPath string) (*types.Config, error) {
 	flag.StringVar(&config.App.MetricsUser, "metrics-user", "", "Metrics basic auth user")
 	flag.StringVar(&config.App.MetricsPassword, "metrics-password", "", "Metrics basic auth password")
 	flag.StringVar(&config.Firebase.ProjectID, "firebase-project-id", "", "Firebase project ID")
+	flag.StringVar(&config.Server.AllowOrigins, "allow-origins", "http://localhost:3000", "Allow origins")
 	flag.Parse()
 
 	return config, nil

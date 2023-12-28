@@ -118,6 +118,7 @@ CMD /usr/local/bin/cnvrt \
   -db-dsn=${DB_DSN} \
   -metrics-user=${METRICS_USER} \
   -metrics-password=${METRICS_PASSWORD} \
-  -firebase-project-id=${FIREBASE_PROJECT_ID}
+  -firebase-project-id=${FIREBASE_PROJECT_ID} \
+  -allow-origins=${ALLOW_ORIGINS}
 
 EXPOSE ${PORT}

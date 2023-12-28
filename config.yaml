@@ -1,5 +1,4 @@
 server:
-  allowOrigins: http://localhost:3000,
   allowHeaders: Origin, Content-Type, Accept, X-Firebase-AppCheck,
   allowMethods: GET, POST, PUT, DELETE, OPTIONS,
   bodyLimit: 20 # bytes * 1024 * 1024
