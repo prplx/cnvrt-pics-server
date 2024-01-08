@@ -47,6 +47,10 @@ type SuccessResult struct {
 	TargetFileSize int64
 	Width          int
 	Height         int
+	OriginalWidth  int
+	OriginalHeight int
+	Format         string
+	Quality        int
 }
 
 type AnyMap map[string]any

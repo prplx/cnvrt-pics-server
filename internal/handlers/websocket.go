@@ -3,7 +3,6 @@ package handlers
 import (
 	"strconv"
 
-	"github.com/gofiber/contrib/websocket"
 	"github.com/prplx/cnvrt/internal/types"
 )
 
@@ -23,14 +22,8 @@ func (h *Handlers) HandleWebsocket(c types.WebsocketConnection) {
 	h.services.Communicator.AddClient(jobIDInt, c)
 
 	for {
-		messageType, _, err := c.ReadMessage()
+		_, _, err := c.ReadMessage()
 		if err != nil {
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				h.services.Logger.PrintError(err, types.AnyMap{
-					"message":     "error reading message",
-					"messageType": messageType,
-				})
-			}
 			return
 		}
 	}

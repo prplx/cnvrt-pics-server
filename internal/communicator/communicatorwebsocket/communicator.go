@@ -49,6 +49,9 @@ func (c *Communicator) RemoveClient(jobID int) {
 }
 
 func (c *Communicator) SendStartProcessing(jobID int, fileID int, fileName string) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	conn := c.connections[jobID]
 	message := types.AnyMap{
 		"operation": ProcessingOperation,
@@ -65,6 +68,9 @@ func (c *Communicator) SendStartProcessing(jobID int, fileID int, fileName strin
 }
 
 func (c *Communicator) SendErrorProcessing(jobID int, fileID int, fileName string) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	conn := c.connections[jobID]
 	message := types.AnyMap{
 		"operation": ProcessingOperation,
@@ -81,6 +87,9 @@ func (c *Communicator) SendErrorProcessing(jobID int, fileID int, fileName strin
 }
 
 func (c *Communicator) SendSuccessProcessing(jobID int, result types.SuccessResult) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	conn := c.connections[jobID]
 	message := types.AnyMap{
 		"operation":      ProcessingOperation,
@@ -92,6 +101,10 @@ func (c *Communicator) SendSuccessProcessing(jobID int, result types.SuccessResu
 		"targetFileSize": strconv.FormatInt(result.TargetFileSize, 10),
 		"width":          result.Width,
 		"height":         result.Height,
+		"format":         result.Format,
+		"quality":        result.Quality,
+		"originalWidth":  result.OriginalWidth,
+		"originalHeight": result.OriginalHeight,
 	}
 
 	if conn == nil {
@@ -102,6 +115,9 @@ func (c *Communicator) SendSuccessProcessing(jobID int, result types.SuccessResu
 }
 
 func (c *Communicator) SendStartArchiving(jobID int) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	conn := c.connections[jobID]
 	if conn == nil {
 		return nil
@@ -114,6 +130,9 @@ func (c *Communicator) SendStartArchiving(jobID int) error {
 }
 
 func (c *Communicator) SendErrorArchiving(jobID int) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	conn := c.connections[jobID]
 	if conn == nil {
 		return nil
@@ -126,6 +145,9 @@ func (c *Communicator) SendErrorArchiving(jobID int) error {
 }
 
 func (c *Communicator) SendSuccessArchiving(jobID int, path string) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	conn := c.connections[jobID]
 	if conn == nil {
 		return nil
@@ -139,6 +161,9 @@ func (c *Communicator) SendSuccessArchiving(jobID int, path string) error {
 }
 
 func (c *Communicator) SendSuccessFlushing(jobID int) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	conn := c.connections[jobID]
 	if conn == nil {
 		return nil
@@ -151,9 +176,6 @@ func (c *Communicator) SendSuccessFlushing(jobID int) error {
 }
 
 func (c *Communicator) addMessageToProcessingCache(jobID int, message *types.AnyMap) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
 	slice := c.processingCache[jobID]
 	if slice == nil {
 		slice = &[]*types.AnyMap{}

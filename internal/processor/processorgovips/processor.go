@@ -63,6 +63,8 @@ func (p *Processor) Process(ctx context.Context, input types.ImageProcessInput) 
 	buffer := input.Buffer
 	var resultFileName string
 	var existingJobFileExists bool
+	var originalWidth int
+	var originalHeight int
 
 	reportError := func(err error) {
 		p.communicator.SendErrorProcessing(jobID, fileID, fileName)
@@ -103,7 +105,8 @@ func (p *Processor) Process(ctx context.Context, input types.ImageProcessInput) 
 			return
 		}
 
-		originalWidth := image.Width()
+		originalWidth = image.Width()
+		originalHeight = image.Height()
 
 		if width != 0 && height != 0 {
 			if err := image.Resize(float64(width)/float64(originalWidth), vips.KernelLanczos3); err != nil {
@@ -169,6 +172,10 @@ func (p *Processor) Process(ctx context.Context, input types.ImageProcessInput) 
 		TargetFileSize: targetInfo.Size(),
 		Width:          width,
 		Height:         height,
+		Format:         format,
+		Quality:        quality,
+		OriginalWidth:  originalWidth,
+		OriginalHeight: originalHeight,
 	})
 	if err != nil {
 		p.logger.PrintError(err, types.AnyMap{
