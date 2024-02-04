@@ -10,8 +10,8 @@ type JobsRepo struct {
 	pool *pgxpool.Pool
 }
 
-func (r *JobsRepo) Create(ctx context.Context) (int, error) {
-	var jobID int
+func (r *JobsRepo) Create(ctx context.Context) (int64, error) {
+	var jobID int64
 
 	err := r.pool.QueryRow(ctx, `
 		INSERT INTO jobs (created_at) VALUES (NOW()) RETURNING id;
@@ -23,7 +23,7 @@ func (r *JobsRepo) Create(ctx context.Context) (int, error) {
 	return jobID, nil
 }
 
-func (r *JobsRepo) Delete(ctx context.Context, jobID int) error {
+func (r *JobsRepo) Delete(ctx context.Context, jobID int64) error {
 	_, err := r.pool.Exec(ctx, `
 		DELETE FROM jobs WHERE id = $1;
 	`, jobID)

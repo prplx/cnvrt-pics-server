@@ -18,19 +18,19 @@ const (
 
 type Communicator struct {
 	mu              sync.Mutex
-	connections     map[int]types.WebsocketConnection
-	processingCache map[int]*[]*types.AnyMap
+	connections     map[int64]types.WebsocketConnection
+	processingCache map[int64]*[]*types.AnyMap
 }
 
 func NewCommunicator() *Communicator {
 	return &Communicator{
 		mu:              sync.Mutex{},
-		connections:     make(map[int]types.WebsocketConnection),
-		processingCache: make(map[int]*[]*types.AnyMap),
+		connections:     make(map[int64]types.WebsocketConnection),
+		processingCache: make(map[int64]*[]*types.AnyMap),
 	}
 }
 
-func (c *Communicator) AddClient(jobID int, connection types.WebsocketConnection) {
+func (c *Communicator) AddClient(jobID int64, connection types.WebsocketConnection) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	conn := c.connections[jobID]
@@ -42,13 +42,13 @@ func (c *Communicator) AddClient(jobID int, connection types.WebsocketConnection
 	c.sendMessagesFromProcessingCache(jobID)
 }
 
-func (c *Communicator) RemoveClient(jobID int) {
+func (c *Communicator) RemoveClient(jobID int64) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	delete(c.connections, jobID)
 }
 
-func (c *Communicator) SendStartProcessing(jobID int, fileID int, fileName string) error {
+func (c *Communicator) SendStartProcessing(jobID int64, fileID int64, fileName string) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -67,7 +67,7 @@ func (c *Communicator) SendStartProcessing(jobID int, fileID int, fileName strin
 	return conn.WriteJSON(message)
 }
 
-func (c *Communicator) SendErrorProcessing(jobID int, fileID int, fileName string) error {
+func (c *Communicator) SendErrorProcessing(jobID int64, fileID int64, fileName string) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -86,7 +86,7 @@ func (c *Communicator) SendErrorProcessing(jobID int, fileID int, fileName strin
 	return conn.WriteJSON(message)
 }
 
-func (c *Communicator) SendSuccessProcessing(jobID int, result types.SuccessResult) error {
+func (c *Communicator) SendSuccessProcessing(jobID int64, result types.SuccessResult) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -114,7 +114,7 @@ func (c *Communicator) SendSuccessProcessing(jobID int, result types.SuccessResu
 	return conn.WriteJSON(message)
 }
 
-func (c *Communicator) SendStartArchiving(jobID int) error {
+func (c *Communicator) SendStartArchiving(jobID int64) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -129,7 +129,7 @@ func (c *Communicator) SendStartArchiving(jobID int) error {
 	})
 }
 
-func (c *Communicator) SendErrorArchiving(jobID int) error {
+func (c *Communicator) SendErrorArchiving(jobID int64) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -144,7 +144,7 @@ func (c *Communicator) SendErrorArchiving(jobID int) error {
 	})
 }
 
-func (c *Communicator) SendSuccessArchiving(jobID int, path string) error {
+func (c *Communicator) SendSuccessArchiving(jobID int64, path string) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -160,7 +160,7 @@ func (c *Communicator) SendSuccessArchiving(jobID int, path string) error {
 	})
 }
 
-func (c *Communicator) SendSuccessFlushing(jobID int) error {
+func (c *Communicator) SendSuccessFlushing(jobID int64) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -175,7 +175,7 @@ func (c *Communicator) SendSuccessFlushing(jobID int) error {
 	})
 }
 
-func (c *Communicator) addMessageToProcessingCache(jobID int, message *types.AnyMap) error {
+func (c *Communicator) addMessageToProcessingCache(jobID int64, message *types.AnyMap) error {
 	slice := c.processingCache[jobID]
 	if slice == nil {
 		slice = &[]*types.AnyMap{}
@@ -186,7 +186,7 @@ func (c *Communicator) addMessageToProcessingCache(jobID int, message *types.Any
 	return nil
 }
 
-func (c *Communicator) sendMessagesFromProcessingCache(jobID int) error {
+func (c *Communicator) sendMessagesFromProcessingCache(jobID int64) error {
 	slice := c.processingCache[jobID]
 	if slice == nil {
 		return nil

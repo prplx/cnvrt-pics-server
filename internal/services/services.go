@@ -9,15 +9,15 @@ import (
 )
 
 type Communicator interface {
-	AddClient(jobID int, connection types.WebsocketConnection)
-	RemoveClient(jobID int)
-	SendStartProcessing(jobID, fileID int, fileName string) error
-	SendErrorProcessing(jobID, fileID int, fileName string) error
-	SendSuccessProcessing(jobID int, result types.SuccessResult) error
-	SendStartArchiving(jobID int) error
-	SendErrorArchiving(jobID int) error
-	SendSuccessArchiving(jobID int, path string) error
-	SendSuccessFlushing(jobID int) error
+	AddClient(jobID int64, connection types.WebsocketConnection)
+	RemoveClient(jobID int64)
+	SendStartProcessing(jobID, fileID int64, fileName string) error
+	SendErrorProcessing(jobID, fileID int64, fileName string) error
+	SendSuccessProcessing(jobID int64, result types.SuccessResult) error
+	SendStartArchiving(jobID int64) error
+	SendErrorArchiving(jobID int64) error
+	SendSuccessArchiving(jobID int64, path string) error
+	SendSuccessFlushing(jobID int64) error
 }
 
 type Logger interface {
@@ -34,11 +34,11 @@ type Processor interface {
 }
 
 type Archiver interface {
-	Archive(jobID int) error
+	Archive(jobID int64) error
 }
 
 type Scheduler interface {
-	ScheduleFlush(jobID int, timeout time.Duration) error
+	ScheduleFlush(jobID int64, timeout time.Duration) error
 }
 
 type Services struct {

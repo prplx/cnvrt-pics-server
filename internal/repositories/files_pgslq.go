@@ -12,7 +12,11 @@ type FilesRepo struct {
 	pool *pgxpool.Pool
 }
 
-func (r *FilesRepo) GetByID(ctx context.Context, id int) (*models.File, error) {
+func NewFilesRepository(pool *pgxpool.Pool) *FilesRepo {
+	return &FilesRepo{pool}
+}
+
+func (r *FilesRepo) GetByID(ctx context.Context, id int64) (*models.File, error) {
 	query := `SELECT id, name FROM files WHERE id = @id;`
 	args := pgx.NamedArgs{
 		"id": id,
@@ -26,7 +30,7 @@ func (r *FilesRepo) GetByID(ctx context.Context, id int) (*models.File, error) {
 	return file, nil
 }
 
-func (r *FilesRepo) CreateBulk(ctx context.Context, jobID int, names []string) ([]models.File, error) {
+func (r *FilesRepo) CreateBulk(ctx context.Context, jobID int64, names []string) ([]models.File, error) {
 	query := `INSERT INTO files (job_id, name) VALUES (@jobID, @name) RETURNING id, name;`
 	batch := &pgx.Batch{}
 	files := []models.File{}
@@ -53,7 +57,7 @@ func (r *FilesRepo) CreateBulk(ctx context.Context, jobID int, names []string) (
 	return files, nil
 }
 
-func (r *FilesRepo) GetWithLatestOperationsByJobID(jobID int) ([]*models.File, error) {
+func (r *FilesRepo) GetWithLatestOperationsByJobID(ctx context.Context, jobID int64) ([]*models.File, error) {
 	query := `
 		SELECT f.id, f.name, o.filename, o.format
 		FROM files f
@@ -69,7 +73,7 @@ func (r *FilesRepo) GetWithLatestOperationsByJobID(jobID int) ([]*models.File, e
 	args := pgx.NamedArgs{
 		"jobID": jobID,
 	}
-	rows, err := r.pool.Query(context.Background(), query, args)
+	rows, err := r.pool.Query(ctx, query, args)
 	if err != nil {
 		return nil, err
 	}
@@ -88,6 +92,51 @@ func (r *FilesRepo) GetWithLatestOperationsByJobID(jobID int) ([]*models.File, e
 	return files, nil
 }
 
-func NewFilesRepository(pool *pgxpool.Pool) *FilesRepo {
-	return &FilesRepo{pool}
+func (r *FilesRepo) AddToJob(ctx context.Context, jobID int64, fileName string) (models.File, error) {
+	query := `INSERT INTO files (job_id, name) VALUES (@jobID, @fileName) RETURNING id, name;`
+	args := pgx.NamedArgs{
+		"jobID":    jobID,
+		"fileName": fileName,
+	}
+	row := r.pool.QueryRow(context.Background(), query, args)
+	file := models.File{}
+	err := row.Scan(&file.ID, &file.Name)
+	if err != nil {
+		return models.File{}, err
+	}
+	return file, nil
+}
+
+func (r *FilesRepo) GetByJobID(ctx context.Context, jobID int64) ([]models.File, error) {
+	query := `SELECT id, name FROM files WHERE job_id = @jobID;`
+	args := pgx.NamedArgs{
+		"jobID": jobID,
+	}
+	rows, err := r.pool.Query(ctx, query, args)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	files := []models.File{}
+	for rows.Next() {
+		file := models.File{}
+		err := rows.Scan(&file.ID, &file.Name)
+		if err != nil {
+			return nil, err
+		}
+		files = append(files, file)
+	}
+
+	return files, nil
+}
+
+func (r *FilesRepo) DeleteFromJob(ctx context.Context, jobID int64, fileID int64) error {
+	query := `DELETE FROM files WHERE job_id = @jobID AND id = @fileID;`
+	args := pgx.NamedArgs{
+		"jobID":  jobID,
+		"fileID": fileID,
+	}
+	_, err := r.pool.Exec(ctx, query, args)
+	return err
 }

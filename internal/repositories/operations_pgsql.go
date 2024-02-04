@@ -12,8 +12,8 @@ type OperationsRepo struct {
 	pool *pgxpool.Pool
 }
 
-func (r *OperationsRepo) Create(ctx context.Context, o models.Operation) (int, error) {
-	var operationID int
+func (r *OperationsRepo) Create(ctx context.Context, o models.Operation) (int64, error) {
+	var operationID int64
 	query := `INSERT INTO operations (job_id, file_id, format, quality, fileName, width, height) VALUES (@jobID, @fileID, @format, @quality, @fileName, @width, @height) RETURNING id;`
 	args := pgx.NamedArgs{
 		"jobID":    o.JobID,

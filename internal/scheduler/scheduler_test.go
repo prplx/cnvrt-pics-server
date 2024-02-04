@@ -120,6 +120,6 @@ func TestScheduler_ScheduleFlush__should_execute_flushes_if_there_any_in_db(t *t
 	time.Sleep(200 * time.Millisecond)
 }
 
-func jobID() int {
-	return rand.Intn(2e8)
+func jobID() int64 {
+	return int64(rand.Intn(2e8))
 }

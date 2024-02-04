@@ -29,8 +29,8 @@ type Config struct {
 }
 
 type ImageProcessInput struct {
-	JobID    int
-	FileID   int
+	JobID    int64
+	FileID   int64
 	FileName string
 	Format   string
 	Quality  int
@@ -41,7 +41,7 @@ type ImageProcessInput struct {
 
 type SuccessResult struct {
 	SourceFileName string
-	SourceFileID   int
+	SourceFileID   int64
 	TargetFileName string
 	SourceFileSize int64
 	TargetFileSize int64

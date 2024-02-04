@@ -8,7 +8,7 @@ import (
 
 func (h *Handlers) HandleWebsocket(c types.WebsocketConnection) {
 	jobID := c.Params("jobID")
-	jobIDInt, err := strconv.Atoi(jobID)
+	jobIDInt, err := strconv.ParseInt(jobID, 10, 64)
 	if err != nil {
 		c.Close()
 		return

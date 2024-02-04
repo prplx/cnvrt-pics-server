@@ -10,24 +10,27 @@ import (
 )
 
 type Jobs interface {
-	Create(ctx context.Context) (int, error)
-	Delete(ctx context.Context, jobID int) error
+	Create(ctx context.Context) (int64, error)
+	Delete(ctx context.Context, jobID int64) error
 }
 
 type Files interface {
-	GetByID(ctx context.Context, id int) (*models.File, error)
-	CreateBulk(ctx context.Context, jobID int, fileNames []string) ([]models.File, error)
-	GetWithLatestOperationsByJobID(jobID int) ([]*models.File, error)
+	GetByID(ctx context.Context, id int64) (*models.File, error)
+	CreateBulk(ctx context.Context, jobID int64, fileNames []string) ([]models.File, error)
+	GetWithLatestOperationsByJobID(ctx context.Context, jobId int64) ([]*models.File, error)
+	AddToJob(ctx context.Context, jobID int64, fileName string) (models.File, error)
+	GetByJobID(ctx context.Context, jobID int64) ([]models.File, error)
+	DeleteFromJob(ctx context.Context, jobID int64, fileID int64) error
 }
 
 type Operations interface {
-	Create(ctx context.Context, o models.Operation) (int, error)
+	Create(ctx context.Context, o models.Operation) (int64, error)
 	GetByParams(ctx context.Context, o models.Operation) (*models.Operation, error)
 	GetLatestOperation(ctx context.Context, jobID, fileID string) (*models.Operation, error)
 }
 
 type PlannedFlushes interface {
-	Create(ctx context.Context, jobID int, flushAt time.Time) (int, error)
+	Create(ctx context.Context, jobID int64, flushAt time.Time) (int64, error)
 	GetAll(ctx context.Context) ([]*models.PlannedFlush, error)
 }
 

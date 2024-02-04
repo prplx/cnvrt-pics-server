@@ -10,7 +10,7 @@ import (
 func (h *Handlers) HandleArchiveJob(ctx *fiber.Ctx) error {
 	reqJobID := ctx.Params("jobID")
 
-	jobID, err := strconv.Atoi(reqJobID)
+	jobID, err := strconv.ParseInt(reqJobID, 10, 64)
 	if err != nil {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
 			"errors": "jobID must be a number",

@@ -14,8 +14,8 @@ func Test_NewCommunicator__should_send_message_from_the_cache_when_the_client_is
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	jobID := 1
-	fileID := 2
+	jobID := int64(1)
+	fileID := int64(2)
 	fileName := "test.jpg"
 	comm := communicator.NewCommunicator()
 	connectionMock := mocks.NewMockWebsocketConnection(ctrl)
@@ -35,10 +35,10 @@ func Test_NewCommunicator__should_send_message_from_the_cache_for_multiple_files
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	jobID := 1
+	jobID := int64(1)
 	operations := []struct {
-		jobID    int
-		fileID   int
+		jobID    int64
+		fileID   int64
 		fileName string
 	}{
 		{jobID: jobID,
@@ -71,8 +71,8 @@ func Test_NewCommunicator__should_send_start_processing_job_message_to_respectiv
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	jobID := 1
-	fileID := 2
+	jobID := int64(1)
+	fileID := int64(2)
 	fileName := "test.jpg"
 	comm := communicator.NewCommunicator()
 	connectionMock := mocks.NewMockWebsocketConnection(ctrl)
@@ -92,8 +92,8 @@ func Test_NewCommunicator__should_not_send_procession_job_message_if_connection_
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	jobID := 1
-	fileID := 2
+	jobID := int64(1)
+	fileID := int64(2)
 	fileName := "test.jpg"
 	comm := communicator.NewCommunicator()
 	connectionMock := mocks.NewMockWebsocketConnection(ctrl)
@@ -109,8 +109,8 @@ func Test_NewCommunicator__should_send_error_processing_job_message_to_respectiv
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	jobID := 2
-	fileID := 3
+	jobID := int64(2)
+	fileID := int64(3)
 	fileName := "test.jpg"
 	comm := communicator.NewCommunicator()
 	connectionMock := mocks.NewMockWebsocketConnection(ctrl)
@@ -130,8 +130,8 @@ func Test_NewCommunicator__should_send_success_processing_job_to_respective_conn
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	jobID := 4
-	fileID := 5
+	jobID := int64(4)
+	fileID := int64(5)
 	sourceFileName := "test.jpg"
 	targetFileName := "test.webp"
 
@@ -166,7 +166,7 @@ func Test_NewCommunicator__should_send_start_archiving_message_for_respective_co
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	jobID := 1
+	jobID := int64(1)
 	comm := communicator.NewCommunicator()
 	connectionMock := mocks.NewMockWebsocketConnection(ctrl)
 
@@ -183,7 +183,7 @@ func Test_NewCommunicator__should_send_error_archiving_message_for_respective_co
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	jobID := 1
+	jobID := int64(1)
 	comm := communicator.NewCommunicator()
 	connectionMock := mocks.NewMockWebsocketConnection(ctrl)
 
@@ -200,7 +200,7 @@ func Test_NewCommunicator__should_send_success_archiving_message_for_respective_
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	jobID := 1
+	jobID := int64(1)
 	path := "/tmp/test.zip"
 	comm := communicator.NewCommunicator()
 	connectionMock := mocks.NewMockWebsocketConnection(ctrl)
@@ -219,7 +219,7 @@ func Test_NewCommunicator__should_send_success_flushing_message_for_respective_c
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	jobID := 1
+	jobID := int64(1)
 	comm := communicator.NewCommunicator()
 	connectionMock := mocks.NewMockWebsocketConnection(ctrl)
 

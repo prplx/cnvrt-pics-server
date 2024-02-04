@@ -141,8 +141,8 @@ func TestProcessor_Process_should_convert_file_if_neither_operation_nor_file_loc
 	os.RemoveAll(helpers.BuildPath(config.TestConfig().Process.UploadDir))
 }
 
-func jobID() int {
-	return rand.Intn(2e8)
+func jobID() int64 {
+	return int64(rand.Intn(2e8))
 }
 
 func processInput() types.ImageProcessInput {

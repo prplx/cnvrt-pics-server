@@ -16,7 +16,7 @@ import (
 
 type Scheduler struct {
 	mu                       sync.Mutex
-	timers                   map[int]*time.Timer
+	timers                   map[int64]*time.Timer
 	config                   *types.Config
 	logger                   services.Logger
 	communitator             services.Communicator
@@ -26,7 +26,7 @@ type Scheduler struct {
 
 func NewScheduler(config *types.Config, l services.Logger, c services.Communicator, jr repositories.Jobs, fr repositories.PlannedFlushes) *Scheduler {
 	scheduler := &Scheduler{
-		timers:                   make(map[int]*time.Timer),
+		timers:                   make(map[int64]*time.Timer),
 		config:                   config,
 		logger:                   l,
 		communitator:             c,
@@ -43,7 +43,7 @@ func NewScheduler(config *types.Config, l services.Logger, c services.Communicat
 	return scheduler
 }
 
-func (s *Scheduler) ScheduleFlush(jobID int, timeout time.Duration) error {
+func (s *Scheduler) ScheduleFlush(jobID int64, timeout time.Duration) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -63,7 +63,7 @@ func (s *Scheduler) ScheduleFlush(jobID int, timeout time.Duration) error {
 	return s.scheduleFlush(jobID, timeout)
 }
 
-func (s *Scheduler) scheduleFlush(jobID int, timeout time.Duration) error {
+func (s *Scheduler) scheduleFlush(jobID int64, timeout time.Duration) error {
 	s.timers[jobID] = time.AfterFunc(timeout, func() {
 		s.mu.Lock()
 		defer s.mu.Unlock()

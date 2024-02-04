@@ -82,7 +82,7 @@ func (h *Handlers) HandleProcessJob(ctx *fiber.Ctx) error {
 		return ctx.SendStatus(http.StatusInternalServerError)
 	}
 
-	fileNameToID := map[string]int{}
+	fileNameToID := map[string]int64{}
 	for _, file := range dbFiles {
 		fileNameToID[file.Name] = file.ID
 	}
@@ -133,7 +133,7 @@ func (h *Handlers) HandleProcessFile(ctx *fiber.Ctx) error {
 	format := ctx.Query("format")
 	reqQuality := ctx.Query("quality")
 	reqFileID := ctx.Query("file_id")
-	reqFileIDInt, err := strconv.Atoi(reqFileID)
+	reqFileIDInt, err := strconv.ParseInt(reqFileID, 10, 64)
 	if err != nil {
 		h.services.Logger.PrintError(err, types.AnyMap{
 			"message": "error parsing file_id param",
@@ -177,7 +177,7 @@ func (h *Handlers) HandleProcessFile(ctx *fiber.Ctx) error {
 		return ctx.SendStatus(http.StatusBadRequest)
 	}
 
-	fileID, err := strconv.Atoi(reqFileID)
+	fileID, err := strconv.ParseInt(reqFileID, 10, 64)
 	if err != nil {
 		h.services.Logger.PrintError(err, types.AnyMap{
 			"message": "error parsing file_id param",
@@ -185,7 +185,7 @@ func (h *Handlers) HandleProcessFile(ctx *fiber.Ctx) error {
 		return ctx.SendStatus(http.StatusBadRequest)
 	}
 
-	jobID, err := strconv.Atoi(reqJobID)
+	jobID, err := strconv.ParseInt(reqJobID, 10, 64)
 	if err != nil {
 		h.services.Logger.PrintError(err, types.AnyMap{
 			"message": "error parsing job_id param",
@@ -194,6 +194,141 @@ func (h *Handlers) HandleProcessFile(ctx *fiber.Ctx) error {
 	}
 
 	go h.services.Processor.Process(context.Background(), types.ImageProcessInput{JobID: jobID, FileID: fileID, FileName: file.Name, Format: format, Quality: quality, Width: reqFileWidth, Height: reqFileHeight, Buffer: buffer})
+
+	return nil
+}
+
+func (h *Handlers) HandleAddFileToJob(ctx *fiber.Ctx) error {
+	reqJobID := ctx.Params("jobID")
+	if reqJobID == "" {
+		h.services.Logger.PrintError(JobIDIsNotFound)
+		return ctx.SendStatus(http.StatusBadRequest)
+	}
+
+	v := validator.NewValidator()
+	if validateRequestQueryParams(v, ctx, "format", "quality"); !v.Valid() {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"errors": v.Errors,
+		})
+	}
+
+	form, err := ctx.MultipartForm()
+	if err != nil {
+		h.services.Logger.PrintError(err, types.AnyMap{
+			"message": "error parsing multipart form",
+		})
+		return ctx.SendStatus(http.StatusBadRequest)
+	}
+
+	path := fmt.Sprintf(h.services.Config.Process.UploadDir+"/%s", reqJobID)
+	reqFormat := ctx.Query("format")
+	reqQuality := ctx.Query("quality")
+	jobID, err := strconv.ParseInt(reqJobID, 10, 64)
+	if err != nil {
+		h.services.Logger.PrintError(err, types.AnyMap{
+			"message": "error parsing job_id param",
+		})
+		return ctx.SendStatus(http.StatusBadRequest)
+	}
+	quality, err := strconv.Atoi(reqQuality)
+	if err != nil {
+		h.services.Logger.PrintError(err, types.AnyMap{
+			"message": "error parsing quality param",
+		})
+		return ctx.SendStatus(http.StatusBadRequest)
+	}
+
+	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
+		h.services.Logger.PrintError(err, types.AnyMap{
+			"message": "job directory not found",
+		})
+		return ctx.SendStatus(http.StatusInternalServerError)
+	}
+
+	dbFiles, err := h.services.Repositories.Files.GetByJobID(context.Background(), jobID)
+	if err != nil {
+		h.services.Logger.PrintError(err, types.AnyMap{
+			"message": "error getting files by job id",
+		})
+		return ctx.SendStatus(http.StatusInternalServerError)
+	}
+
+	fileNameToID := map[string]int64{}
+	for _, file := range dbFiles {
+		fileNameToID[file.Name] = file.ID
+	}
+
+	var fileName string
+	for _, fileHeaders := range form.File {
+		for _, fileHeader := range fileHeaders {
+			if _, ok := fileNameToID[fileHeader.Filename]; ok {
+				h.services.Logger.PrintError(err, types.AnyMap{
+					"message": "file already exists",
+				})
+				return ctx.SendStatus(http.StatusBadRequest)
+			}
+			err = ctx.SaveFile(fileHeader, helpers.BuildPath(h.services.Config.Process.UploadDir, jobID, fileHeader.Filename))
+			if err != nil {
+				h.services.Logger.PrintError(err, types.AnyMap{
+					"message": "error saving file",
+				})
+				return ctx.SendStatus(http.StatusInternalServerError)
+			}
+			fileName = fileHeader.Filename
+		}
+	}
+
+	dbFile, err := h.services.Repositories.Files.AddToJob(context.Background(), jobID, fileName)
+	if err != nil {
+		h.services.Logger.PrintError(err, types.AnyMap{
+			"message": "error adding file to job",
+		})
+		return ctx.SendStatus(http.StatusInternalServerError)
+	}
+
+	buffer, err := h.readFile(helpers.BuildPath(h.services.Config.Process.UploadDir, jobID, fileName))
+	if err != nil {
+		h.services.Logger.PrintError(err, types.AnyMap{
+			"message": "error reading file",
+		})
+		return ctx.SendStatus(http.StatusInternalServerError)
+	}
+
+	go h.services.Processor.Process(context.Background(), types.ImageProcessInput{JobID: jobID, FileID: dbFile.ID, FileName: fileName, Format: reqFormat, Quality: quality, Buffer: buffer})
+
+	return nil
+}
+
+func (h *Handlers) HandleDeleteFileFromJob(ctx *fiber.Ctx) error {
+	reqJobID := ctx.Params("jobID")
+	reqFileID := ctx.Query("file_id")
+	if reqJobID == "" || reqFileID == "" {
+		h.services.Logger.PrintError(JobIDIsNotFound)
+		return ctx.SendStatus(http.StatusBadRequest)
+	}
+
+	jobID, err := strconv.ParseInt(reqJobID, 10, 64)
+	if err != nil {
+		h.services.Logger.PrintError(err, types.AnyMap{
+			"message": "error parsing job_id param",
+		})
+		return ctx.SendStatus(http.StatusBadRequest)
+	}
+	fileID, err := strconv.ParseInt(reqFileID, 10, 64)
+	if err != nil {
+		h.services.Logger.PrintError(err, types.AnyMap{
+			"message": "error parsing file_id param",
+		})
+		return ctx.SendStatus(http.StatusBadRequest)
+	}
+
+	err = h.services.Repositories.Files.DeleteFromJob(context.Background(), jobID, fileID)
+	if err != nil {
+		h.services.Logger.PrintError(err, types.AnyMap{
+			"message": "error deleting file",
+		})
+		return ctx.SendStatus(http.StatusInternalServerError)
+	}
 
 	return nil
 }

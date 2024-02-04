@@ -116,6 +116,8 @@ func Register(app *fiber.App, handlers *handlers.Handlers, config *types.Config,
 	v1 := app.Group("/api/v1")
 	v1.Post("/process", handlers.HandleProcessJob)
 	v1.Post("/process/:jobID", handlers.HandleProcessFile)
+	v1.Put("/process/:jobID", handlers.HandleAddFileToJob)
+	v1.Delete("/process/:jobID", handlers.HandleDeleteFileFromJob)
 	v1.Post("/archive/:jobID", handlers.HandleArchiveJob)
 	v1.Get("/ws/:jobID", websocket.New(func(c *websocket.Conn) {
 		handlers.HandleWebsocket(c)

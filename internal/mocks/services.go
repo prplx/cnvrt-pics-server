@@ -41,7 +41,7 @@ func (m *MockCommunicator) EXPECT() *MockCommunicatorMockRecorder {
 }
 
 // AddClient mocks base method.
-func (m *MockCommunicator) AddClient(jobID int, connection types.WebsocketConnection) {
+func (m *MockCommunicator) AddClient(jobID int64, connection types.WebsocketConnection) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "AddClient", jobID, connection)
 }
@@ -53,7 +53,7 @@ func (mr *MockCommunicatorMockRecorder) AddClient(jobID, connection any) *gomock
 }
 
 // RemoveClient mocks base method.
-func (m *MockCommunicator) RemoveClient(jobID int) {
+func (m *MockCommunicator) RemoveClient(jobID int64) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "RemoveClient", jobID)
 }
@@ -65,7 +65,7 @@ func (mr *MockCommunicatorMockRecorder) RemoveClient(jobID any) *gomock.Call {
 }
 
 // SendErrorArchiving mocks base method.
-func (m *MockCommunicator) SendErrorArchiving(jobID int) error {
+func (m *MockCommunicator) SendErrorArchiving(jobID int64) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendErrorArchiving", jobID)
 	ret0, _ := ret[0].(error)
@@ -79,7 +79,7 @@ func (mr *MockCommunicatorMockRecorder) SendErrorArchiving(jobID any) *gomock.Ca
 }
 
 // SendErrorProcessing mocks base method.
-func (m *MockCommunicator) SendErrorProcessing(jobID, fileID int, fileName string) error {
+func (m *MockCommunicator) SendErrorProcessing(jobID, fileID int64, fileName string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendErrorProcessing", jobID, fileID, fileName)
 	ret0, _ := ret[0].(error)
@@ -93,7 +93,7 @@ func (mr *MockCommunicatorMockRecorder) SendErrorProcessing(jobID, fileID, fileN
 }
 
 // SendStartArchiving mocks base method.
-func (m *MockCommunicator) SendStartArchiving(jobID int) error {
+func (m *MockCommunicator) SendStartArchiving(jobID int64) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendStartArchiving", jobID)
 	ret0, _ := ret[0].(error)
@@ -107,7 +107,7 @@ func (mr *MockCommunicatorMockRecorder) SendStartArchiving(jobID any) *gomock.Ca
 }
 
 // SendStartProcessing mocks base method.
-func (m *MockCommunicator) SendStartProcessing(jobID, fileID int, fileName string) error {
+func (m *MockCommunicator) SendStartProcessing(jobID, fileID int64, fileName string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendStartProcessing", jobID, fileID, fileName)
 	ret0, _ := ret[0].(error)
@@ -121,7 +121,7 @@ func (mr *MockCommunicatorMockRecorder) SendStartProcessing(jobID, fileID, fileN
 }
 
 // SendSuccessArchiving mocks base method.
-func (m *MockCommunicator) SendSuccessArchiving(jobID int, path string) error {
+func (m *MockCommunicator) SendSuccessArchiving(jobID int64, path string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendSuccessArchiving", jobID, path)
 	ret0, _ := ret[0].(error)
@@ -135,7 +135,7 @@ func (mr *MockCommunicatorMockRecorder) SendSuccessArchiving(jobID, path any) *g
 }
 
 // SendSuccessFlushing mocks base method.
-func (m *MockCommunicator) SendSuccessFlushing(jobID int) error {
+func (m *MockCommunicator) SendSuccessFlushing(jobID int64) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendSuccessFlushing", jobID)
 	ret0, _ := ret[0].(error)
@@ -149,7 +149,7 @@ func (mr *MockCommunicatorMockRecorder) SendSuccessFlushing(jobID any) *gomock.C
 }
 
 // SendSuccessProcessing mocks base method.
-func (m *MockCommunicator) SendSuccessProcessing(jobID int, result types.SuccessResult) error {
+func (m *MockCommunicator) SendSuccessProcessing(jobID int64, result types.SuccessResult) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendSuccessProcessing", jobID, result)
 	ret0, _ := ret[0].(error)
@@ -334,7 +334,7 @@ func (m *MockArchiver) EXPECT() *MockArchiverMockRecorder {
 }
 
 // Archive mocks base method.
-func (m *MockArchiver) Archive(jobID int) error {
+func (m *MockArchiver) Archive(jobID int64) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Archive", jobID)
 	ret0, _ := ret[0].(error)
@@ -371,7 +371,7 @@ func (m *MockScheduler) EXPECT() *MockSchedulerMockRecorder {
 }
 
 // ScheduleFlush mocks base method.
-func (m *MockScheduler) ScheduleFlush(jobID int, timeout time.Duration) error {
+func (m *MockScheduler) ScheduleFlush(jobID int64, timeout time.Duration) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ScheduleFlush", jobID, timeout)
 	ret0, _ := ret[0].(error)

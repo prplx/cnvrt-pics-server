@@ -105,8 +105,8 @@ func Test_HandleProcessFile__should_return_correct_response_when_all_conditions_
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	jobID := 555
-	fileID := 1
+	jobID := int64(555)
+	fileID := int64(1)
 	fileName := "file.png"
 	logger := mocks.NewMockLogger(ctrl)
 	filesRepo := mocks.NewMockFiles(ctrl)

@@ -2,6 +2,7 @@ package archiver
 
 import (
 	"archive/zip"
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -30,7 +31,7 @@ func NewArchiver(config *types.Config, fr repositories.Files, l services.Logger,
 	}
 }
 
-func (a *Archiver) Archive(jobID int) error {
+func (a *Archiver) Archive(jobID int64) error {
 	reportError := func(err error) {
 		a.communicator.SendErrorArchiving(jobID)
 		a.logger.PrintError(err, types.AnyMap{
@@ -44,7 +45,7 @@ func (a *Archiver) Archive(jobID int) error {
 		return errors.Wrap(err, "error sending start archiving")
 	}
 
-	filesWithOperaton, err := a.filesRepository.GetWithLatestOperationsByJobID(jobID)
+	filesWithOperaton, err := a.filesRepository.GetWithLatestOperationsByJobID(context.Background(), jobID)
 	if err != nil {
 		reportError(err)
 		return errors.Wrap(err, "error getting files with latest operations")

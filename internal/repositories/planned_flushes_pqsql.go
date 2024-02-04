@@ -13,8 +13,8 @@ type PlannedFlushesRepo struct {
 	pool *pgxpool.Pool
 }
 
-func (r *PlannedFlushesRepo) Create(ctx context.Context, jobID int, flushAt time.Time) (int, error) {
-	var flushID int
+func (r *PlannedFlushesRepo) Create(ctx context.Context, jobID int64, flushAt time.Time) (int64, error) {
+	var flushID int64
 	query := `INSERT INTO planned_flushes (job_id, flush_at) VALUES (@jobID, @flushAt) RETURNING id;`
 	args := pgx.NamedArgs{
 		"jobID":   jobID,
