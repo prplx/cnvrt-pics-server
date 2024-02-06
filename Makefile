@@ -1,4 +1,7 @@
-include .envrc
+exist := $(wildcard .envrc)
+ifneq ($(strip $(exist)),)
+  include .envrc
+endif
 
 .PHONY: run run/live test audit tidy db/migrate_up db/migrate_down db/migrate_force db/migrate_create docker/build docker/run mocks report install test/coverage
 
