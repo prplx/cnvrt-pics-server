@@ -10,12 +10,13 @@ import (
 )
 
 type Jobs interface {
-	Create(ctx context.Context) (int64, error)
+	GetByID(ctx context.Context, id int64) (*models.Job, error)
+	Create(ctx context.Context, session string) (int64, error)
 	Delete(ctx context.Context, jobID int64) error
 }
 
 type Files interface {
-	GetByID(ctx context.Context, id int64) (*models.File, error)
+	GetWithJobByID(ctx context.Context, id int64) (*models.File, error)
 	CreateBulk(ctx context.Context, jobID int64, fileNames []string) ([]models.File, error)
 	GetWithLatestOperationsByJobID(ctx context.Context, jobId int64) ([]*models.File, error)
 	AddToJob(ctx context.Context, jobID int64, fileName string) (models.File, error)

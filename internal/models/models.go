@@ -8,10 +8,12 @@ type File struct {
 	Name            string
 	CreatedAt       time.Time
 	LatestOperation *Operation
+	Job             *Job
 }
 
 type Job struct {
 	ID        int64
+	Session   string
 	CreatedAt time.Time
 }
 

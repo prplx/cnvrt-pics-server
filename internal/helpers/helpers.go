@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -26,4 +27,12 @@ func FileExtension(fileName string) string {
 
 func IsTest() bool {
 	return os.Getenv("ENV") == "test"
+}
+
+func MustGetHostnameFromURL(input string) string {
+	url, err := url.Parse(input)
+	if err != nil {
+		panic(err)
+	}
+	return strings.TrimPrefix(url.Hostname(), "www.")
 }

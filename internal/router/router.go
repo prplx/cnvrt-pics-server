@@ -18,6 +18,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/monitor"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/gofiber/storage/postgres/v3"
@@ -56,9 +57,10 @@ func Register(app *fiber.App, handlers *handlers.Handlers, config *types.Config,
 	app.Use(recover.New())
 	app.Use(helmet.New())
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: config.Server.AllowOrigins,
-		AllowHeaders: config.Server.AllowHeaders,
-		AllowMethods: config.Server.AllowMethods,
+		AllowOrigins:     config.Server.AllowOrigins,
+		AllowHeaders:     config.Server.AllowHeaders,
+		AllowMethods:     config.Server.AllowMethods,
+		AllowCredentials: true,
 	}))
 	app.Use(basicauth.New(basicauth.Config{
 		Users: map[string]string{
@@ -87,7 +89,12 @@ func Register(app *fiber.App, handlers *handlers.Handlers, config *types.Config,
 
 		return c.Next()
 	})
-
+	sessionConfig := session.Config{
+		Expiration:     24 * time.Hour,
+		KeyLookup:      "cookie:session_id",
+		CookieDomain:   helpers.MustGetHostnameFromURL(config.Server.AllowOrigins),
+		CookieHTTPOnly: true,
+	}
 	limiterConfig := limiter.Config{
 		Next: func(c *fiber.Ctx) bool {
 			return helpers.IsTest()
@@ -101,6 +108,10 @@ func Register(app *fiber.App, handlers *handlers.Handlers, config *types.Config,
 			DB:    dbPool,
 			Table: "ratelimit",
 		})
+		sessionConfig.Storage = postgres.New(postgres.Config{
+			DB:    dbPool,
+			Table: "session",
+		})
 	}
 	app.Use(limiter.New(limiterConfig))
 	app.Use("/ws", func(c *fiber.Ctx) error {
@@ -109,6 +120,11 @@ func Register(app *fiber.App, handlers *handlers.Handlers, config *types.Config,
 			return c.Next()
 		}
 		return fiber.ErrUpgradeRequired
+	})
+	store := session.New(sessionConfig)
+	app.Use(func(c *fiber.Ctx) error {
+		c.Locals("store", store)
+		return c.Next()
 	})
 	app.Get(metricsEndpoint, monitor.New())
 	app.Get(healthcheckEndpoint, handlers.Healthcheck)

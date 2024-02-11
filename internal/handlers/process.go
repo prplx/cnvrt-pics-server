@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/pkg/errors"
 	"github.com/prplx/cnvrt/internal/helpers"
 	"github.com/prplx/cnvrt/internal/types"
@@ -16,6 +17,13 @@ import (
 )
 
 func (h *Handlers) HandleProcessJob(ctx *fiber.Ctx) error {
+	session, err := h.getSession(ctx)
+	if err != nil {
+		return ctx.SendStatus(http.StatusInternalServerError)
+	}
+
+	session.Regenerate()
+
 	v := validator.NewValidator()
 	if validateRequestQueryParams(v, ctx, "format", "quality"); !v.Valid() {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
@@ -31,10 +39,17 @@ func (h *Handlers) HandleProcessJob(ctx *fiber.Ctx) error {
 		return ctx.SendStatus(http.StatusBadRequest)
 	}
 
-	jobID, err := h.services.Repositories.Jobs.Create(context.Background())
+	jobID, err := h.services.Repositories.Jobs.Create(context.Background(), session.ID())
 	if err != nil {
 		h.services.Logger.PrintError(err, types.AnyMap{
 			"message": "error creating job",
+		})
+		return ctx.SendStatus(http.StatusInternalServerError)
+	}
+	err = session.Save()
+	if err != nil {
+		h.services.Logger.PrintError(err, types.AnyMap{
+			"message": "error saving session",
 		})
 		return ctx.SendStatus(http.StatusInternalServerError)
 	}
@@ -117,6 +132,11 @@ func (h *Handlers) HandleProcessJob(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) HandleProcessFile(ctx *fiber.Ctx) error {
+	session, err := h.getSession(ctx)
+	if err != nil {
+		return ctx.SendStatus(http.StatusInternalServerError)
+	}
+
 	reqJobID := ctx.Params("jobID")
 	if reqJobID == "" {
 		h.services.Logger.PrintError(JobIDIsNotFound)
@@ -156,12 +176,19 @@ func (h *Handlers) HandleProcessFile(ctx *fiber.Ctx) error {
 		return ctx.SendStatus(http.StatusBadRequest)
 	}
 
-	file, err := h.services.Repositories.Files.GetByID(context.Background(), reqFileIDInt)
+	file, err := h.services.Repositories.Files.GetWithJobByID(context.Background(), reqFileIDInt)
 	if err != nil {
 		h.services.Logger.PrintError(err, types.AnyMap{
 			"message": "error getting file by id",
 		})
 		return ctx.SendStatus(http.StatusInternalServerError)
+	}
+
+	if file.Job.Session != session.ID() {
+		h.services.Logger.PrintError(SessionIDDoesNotMatch, types.AnyMap{
+			"message": "session id does not match",
+		})
+		return ctx.SendStatus(http.StatusForbidden)
 	}
 	filePath := helpers.BuildPath(h.services.Config.Process.UploadDir, reqJobID, file.Name)
 	buffer, err := h.readFile(filePath)
@@ -199,6 +226,11 @@ func (h *Handlers) HandleProcessFile(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) HandleAddFileToJob(ctx *fiber.Ctx) error {
+	session, err := h.getSession(ctx)
+	if err != nil {
+		return ctx.SendStatus(http.StatusInternalServerError)
+	}
+
 	reqJobID := ctx.Params("jobID")
 	if reqJobID == "" {
 		h.services.Logger.PrintError(JobIDIsNotFound)
@@ -243,6 +275,21 @@ func (h *Handlers) HandleAddFileToJob(ctx *fiber.Ctx) error {
 			"message": "job directory not found",
 		})
 		return ctx.SendStatus(http.StatusInternalServerError)
+	}
+
+	dbJob, err := h.services.Repositories.Jobs.GetByID(context.Background(), jobID)
+	if err != nil {
+		h.services.Logger.PrintError(err, types.AnyMap{
+			"message": "error getting job by id",
+		})
+		return ctx.SendStatus(http.StatusInternalServerError)
+	}
+
+	if dbJob.Session != session.ID() {
+		h.services.Logger.PrintError(SessionIDDoesNotMatch, types.AnyMap{
+			"message": "session id does not match",
+		})
+		return ctx.SendStatus(http.StatusForbidden)
 	}
 
 	dbFiles, err := h.services.Repositories.Files.GetByJobID(context.Background(), jobID)
@@ -300,6 +347,11 @@ func (h *Handlers) HandleAddFileToJob(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) HandleDeleteFileFromJob(ctx *fiber.Ctx) error {
+	session, err := h.getSession(ctx)
+	if err != nil {
+		return ctx.SendStatus(http.StatusInternalServerError)
+	}
+
 	reqJobID := ctx.Params("jobID")
 	reqFileID := ctx.Query("file_id")
 	if reqJobID == "" || reqFileID == "" {
@@ -314,12 +366,28 @@ func (h *Handlers) HandleDeleteFileFromJob(ctx *fiber.Ctx) error {
 		})
 		return ctx.SendStatus(http.StatusBadRequest)
 	}
+
 	fileID, err := strconv.ParseInt(reqFileID, 10, 64)
 	if err != nil {
 		h.services.Logger.PrintError(err, types.AnyMap{
 			"message": "error parsing file_id param",
 		})
 		return ctx.SendStatus(http.StatusBadRequest)
+	}
+
+	dbJob, err := h.services.Repositories.Jobs.GetByID(context.Background(), jobID)
+	if err != nil {
+		h.services.Logger.PrintError(err, types.AnyMap{
+			"message": "error getting job by id",
+		})
+		return ctx.SendStatus(http.StatusInternalServerError)
+	}
+
+	if dbJob.Session != session.ID() {
+		h.services.Logger.PrintError(SessionIDDoesNotMatch, types.AnyMap{
+			"message": "session id does not match",
+		})
+		return ctx.SendStatus(http.StatusForbidden)
 	}
 
 	err = h.services.Repositories.Files.DeleteFromJob(context.Background(), jobID, fileID)
@@ -331,4 +399,21 @@ func (h *Handlers) HandleDeleteFileFromJob(ctx *fiber.Ctx) error {
 	}
 
 	return nil
+}
+
+func (h *Handlers) getSession(ctx *fiber.Ctx) (*session.Session, error) {
+	sessionStore, ok := ctx.Locals("store").(*session.Store)
+	if !ok {
+		h.services.Logger.PrintError(StoreIsNotFoundInContext)
+		return nil, StoreIsNotFoundInContext
+	}
+	session, err := sessionStore.Get(ctx)
+	if err != nil {
+		h.services.Logger.PrintError(err, types.AnyMap{
+			"message": "error getting session",
+		})
+		return nil, err
+	}
+
+	return session, nil
 }

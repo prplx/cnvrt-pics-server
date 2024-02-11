@@ -16,14 +16,14 @@ func NewFilesRepository(pool *pgxpool.Pool) *FilesRepo {
 	return &FilesRepo{pool}
 }
 
-func (r *FilesRepo) GetByID(ctx context.Context, id int64) (*models.File, error) {
-	query := `SELECT id, name FROM files WHERE id = @id;`
+func (r *FilesRepo) GetWithJobByID(ctx context.Context, id int64) (*models.File, error) {
+	query := `SELECT f.id, f.name, j.id, j.session FROM files f INNER JOIN jobs j ON f.job_id = j.id WHERE f.id = @id;`
 	args := pgx.NamedArgs{
 		"id": id,
 	}
 	row := r.pool.QueryRow(context.Background(), query, args)
-	file := &models.File{}
-	err := row.Scan(&file.ID, &file.Name)
+	file := &models.File{Job: &models.Job{}}
+	err := row.Scan(&file.ID, &file.Name, &file.Job.ID, &file.Job.Session)
 	if err != nil {
 		return nil, err
 	}
