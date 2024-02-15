@@ -1,14 +1,14 @@
 api.cnvrt.local {
-        reverse_proxy localhost:3001
-        handle /api/v1/ws {
-                reverse_proxy {
-                        to localhost:3001/api/v1/ws
-                        header_up Upgrade websocket
-                        header_up Connection Upgrade
-                }
-        }
+	reverse_proxy localhost:3001
+	handle /api/v1/ws {
+		reverse_proxy {
+			to localhost:3001/api/v1/ws
+			header_up Upgrade websocket
+			header_up Connection Upgrade
+		}
+	}
 }
 
 cnvrt.local {
-        reverse_proxy localhost:3000
+	reverse_proxy localhost:3000
 }
