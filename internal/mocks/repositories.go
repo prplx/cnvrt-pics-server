@@ -5,6 +5,7 @@
 //
 //	mockgen -source=internal/repositories/repositories.go --destination=internal/mocks/repositories.go --package=mocks
 //
+
 // Package mocks is a generated GoMock package.
 package mocks
 
@@ -41,18 +42,18 @@ func (m *MockJobs) EXPECT() *MockJobsMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockJobs) Create(ctx context.Context) (int64, error) {
+func (m *MockJobs) Create(ctx context.Context, session string) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", ctx)
+	ret := m.ctrl.Call(m, "Create", ctx, session)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockJobsMockRecorder) Create(ctx any) *gomock.Call {
+func (mr *MockJobsMockRecorder) Create(ctx, session any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockJobs)(nil).Create), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockJobs)(nil).Create), ctx, session)
 }
 
 // Delete mocks base method.
@@ -67,6 +68,21 @@ func (m *MockJobs) Delete(ctx context.Context, jobID int64) error {
 func (mr *MockJobsMockRecorder) Delete(ctx, jobID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockJobs)(nil).Delete), ctx, jobID)
+}
+
+// GetByID mocks base method.
+func (m *MockJobs) GetByID(ctx context.Context, id int64) (*models.Job, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByID", ctx, id)
+	ret0, _ := ret[0].(*models.Job)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByID indicates an expected call of GetByID.
+func (mr *MockJobsMockRecorder) GetByID(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockJobs)(nil).GetByID), ctx, id)
 }
 
 // MockFiles is a mock of Files interface.
@@ -136,21 +152,6 @@ func (mr *MockFilesMockRecorder) DeleteFromJob(ctx, jobID, fileID any) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFromJob", reflect.TypeOf((*MockFiles)(nil).DeleteFromJob), ctx, jobID, fileID)
 }
 
-// GetByID mocks base method.
-func (m *MockFiles) GetByID(ctx context.Context, id int64) (*models.File, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByID", ctx, id)
-	ret0, _ := ret[0].(*models.File)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetByID indicates an expected call of GetByID.
-func (mr *MockFilesMockRecorder) GetByID(ctx, id any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockFiles)(nil).GetByID), ctx, id)
-}
-
 // GetByJobID mocks base method.
 func (m *MockFiles) GetByJobID(ctx context.Context, jobID int64) ([]models.File, error) {
 	m.ctrl.T.Helper()
@@ -164,6 +165,21 @@ func (m *MockFiles) GetByJobID(ctx context.Context, jobID int64) ([]models.File,
 func (mr *MockFilesMockRecorder) GetByJobID(ctx, jobID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByJobID", reflect.TypeOf((*MockFiles)(nil).GetByJobID), ctx, jobID)
+}
+
+// GetWithJobByID mocks base method.
+func (m *MockFiles) GetWithJobByID(ctx context.Context, id int64) (*models.File, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetWithJobByID", ctx, id)
+	ret0, _ := ret[0].(*models.File)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetWithJobByID indicates an expected call of GetWithJobByID.
+func (mr *MockFilesMockRecorder) GetWithJobByID(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWithJobByID", reflect.TypeOf((*MockFiles)(nil).GetWithJobByID), ctx, id)
 }
 
 // GetWithLatestOperationsByJobID mocks base method.

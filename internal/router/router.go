@@ -2,10 +2,7 @@ package router
 
 import (
 	"context"
-	"fmt"
 	"log"
-	"net/http"
-	"strings"
 	"time"
 
 	firebaseAdmin "firebase.google.com/go/v4"
@@ -71,24 +68,10 @@ func Register(app *fiber.App, handlers *handlers.Handlers, config *types.Config,
 		},
 	}))
 	app.Use(func(c *fiber.Ctx) error {
-		if helpers.IsTest() || strings.Contains(c.Path(), "/ws") || strings.Contains(c.Path(), healthcheckEndpoint) {
-			return c.Next()
-		}
-
-		var appCheckToken string
-
-		if strings.Contains(c.Path(), "/ws") {
-			appCheckToken = c.Query(firebaseAppCheckQuery)
-		} else {
-			appCheckToken = c.Get(config.Firebase.AppCheckHeader)
-		}
-
-		if err := requireAppCheck(appCheck, appCheckToken); err != nil {
-			return c.Status(http.StatusForbidden).SendString("Forbidden")
-		}
-
+		c.Locals("config", config)
 		return c.Next()
 	})
+	app.Use(checkAppCheckToken)
 	sessionConfig := session.Config{
 		Expiration:     24 * time.Hour,
 		KeyLookup:      "cookie:session_id",
@@ -130,7 +113,7 @@ func Register(app *fiber.App, handlers *handlers.Handlers, config *types.Config,
 	app.Get(healthcheckEndpoint, handlers.Healthcheck)
 
 	v1 := app.Group("/api/v1")
-	v1.Post("/process", handlers.HandleProcessJob)
+	v1.Post("/process", checkFormFileLength, handlers.HandleProcessJob)
 	v1.Post("/process/:jobID", handlers.HandleProcessFile)
 	v1.Put("/process/:jobID", handlers.HandleAddFileToJob)
 	v1.Delete("/process/:jobID", handlers.HandleDeleteFileFromJob)
@@ -138,12 +121,4 @@ func Register(app *fiber.App, handlers *handlers.Handlers, config *types.Config,
 	v1.Get("/ws/:jobID", websocket.New(func(c *websocket.Conn) {
 		handlers.HandleWebsocket(c)
 	}))
-}
-
-func requireAppCheck(appCheck *appcheck.Client, appCheckToken string) error {
-	if _, err := appCheck.VerifyToken(appCheckToken); err != nil {
-		return fmt.Errorf("AppCheck token verification failed: %v", err)
-	}
-
-	return nil
 }

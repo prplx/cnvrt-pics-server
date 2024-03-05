@@ -88,7 +88,7 @@ func createFormFile(t *testing.T, fieldName, filePath string) (*bytes.Buffer, st
 	return body, mw.FormDataContentType()
 }
 
-func getServices(t *testing.T, mocks *Mocks) svc.Services {
+func getServices(_ *testing.T, mocks *Mocks) svc.Services {
 	return svc.Services{
 		Communicator: mocks.communicator,
 		Logger:       mocks.logger,

@@ -27,6 +27,7 @@ func Test_HandleProcessJob__should_return_correct_response_when_all_conditions_a
 	logger := mocks.NewMockLogger(ctrl)
 	filesRepo := mocks.NewMockFiles(ctrl)
 	processor := mocks.NewMockProcessor(ctrl)
+	session := "session"
 	mocks := &Mocks{
 		jobsRepo:     jobsRepo,
 		filesRepo:    filesRepo,
@@ -34,7 +35,7 @@ func Test_HandleProcessJob__should_return_correct_response_when_all_conditions_a
 		logger:       logger,
 		processor:    processor,
 	}
-	jobsRepo.EXPECT().Create(gomock.Any()).Return(jobID, nil)
+	jobsRepo.EXPECT().Create(gomock.Any(), session).Return(jobID, nil)
 	logger.EXPECT().PrintError(gomock.Any()).AnyTimes()
 	filesRepo.EXPECT().CreateBulk(gomock.Any(), jobID, []string{fileName}).Return([]models.File{
 		{
@@ -116,7 +117,7 @@ func Test_HandleProcessFile__should_return_correct_response_when_all_conditions_
 		logger:    logger,
 		processor: processor,
 	}
-	filesRepo.EXPECT().GetByID(gomock.Any(), fileID).Return(&models.File{
+	filesRepo.EXPECT().GetWithJobByID(gomock.Any(), fileID).Return(&models.File{
 		Name: fileName,
 	}, nil).Times(1)
 

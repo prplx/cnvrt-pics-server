@@ -96,18 +96,19 @@ func (p *Processor) Process(ctx context.Context, input types.ImageProcessInput) 
 		}
 	}
 
+	image, err := vips.NewImageFromBuffer(buffer)
+	if err != nil {
+		reportError(errors.Wrap(err, "error creating image from buffer"))
+		return
+	}
+
+	originalWidth = image.Width()
+	originalHeight = image.Height()
+
 	if existingJobFileExists {
 		resultFileName = possiblyExistingOperation.FileName
+		image.Close()
 	} else {
-		image, err := vips.NewImageFromBuffer(buffer)
-		if err != nil {
-			reportError(errors.Wrap(err, "error creating image from buffer"))
-			return
-		}
-
-		originalWidth = image.Width()
-		originalHeight = image.Height()
-
 		if width != 0 && height != 0 {
 			if err := image.Resize(float64(width)/float64(originalWidth), vips.KernelLanczos3); err != nil {
 				reportError(errors.Wrap(err, "error resizing image"))
@@ -142,6 +143,7 @@ func (p *Processor) Process(ctx context.Context, input types.ImageProcessInput) 
 				"job_id": jobID,
 			})
 		}
+		image.Close()
 	}
 
 	sourceInfo, err := os.Stat(helpers.BuildPath(p.config.Process.UploadDir, jobID, fileName))
