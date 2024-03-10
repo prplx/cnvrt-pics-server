@@ -1,4 +1,5 @@
 api.cnvrt.local {
+	tls internal
 	reverse_proxy localhost:3001
 	handle /api/v1/ws {
 		reverse_proxy {
@@ -10,5 +11,6 @@ api.cnvrt.local {
 }
 
 cnvrt.local {
+	tls internal
 	reverse_proxy localhost:3000
 }
