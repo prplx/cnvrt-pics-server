@@ -23,17 +23,6 @@ type Processor struct {
 	scheduler            services.Scheduler
 }
 
-var Formats = map[string]vips.ImageType{
-	"jpeg": vips.ImageTypeJPEG,
-	"jpg":  vips.ImageTypeJPEG,
-	"webp": vips.ImageTypeWEBP,
-	"png":  vips.ImageTypePNG,
-	"tiff": vips.ImageTypeTIFF,
-	"gif":  vips.ImageTypeGIF,
-	"heif": vips.ImageTypeHEIF,
-	"avif": vips.ImageTypeAVIF,
-}
-
 func NewProcessor(config *types.Config, or repositories.Operations, c services.Communicator, l services.Logger, s services.Scheduler) *Processor {
 	return &Processor{
 		communicator:         c,
@@ -119,11 +108,49 @@ func (p *Processor) Process(ctx context.Context, input types.ImageProcessInput) 
 			height = image.Height()
 		}
 
-		imageBytes, _, err := image.Export(&vips.ExportParams{
-			Format:        Formats[format],
-			Quality:       quality,
-			StripMetadata: true,
-		})
+		var imageBytes []byte
+
+		switch format {
+		case "jpeg", "jpg":
+			exportParams := vips.NewDefaultJPEGExportParams()
+			exportParams.Quality = quality
+			exportParams.StripMetadata = true
+			imageBytes, _, err = image.Export(exportParams)
+		case "webp":
+			exportParams := vips.NewDefaultWEBPExportParams()
+			exportParams.Quality = quality
+			exportParams.StripMetadata = true
+			imageBytes, _, err = image.Export(exportParams)
+		case "png":
+			exportParams := vips.NewPngExportParams()
+			exportParams.Compression = 9
+			exportParams.Quality = quality
+			exportParams.Palette = true
+			exportParams.StripMetadata = true
+			imageBytes, _, err = image.ExportPng(exportParams)
+		case "tiff":
+			exportParams := vips.NewTiffExportParams()
+			exportParams.Quality = quality
+			exportParams.StripMetadata = true
+			imageBytes, _, err = image.ExportTiff(exportParams)
+		case "gif":
+			exportParams := vips.NewGifExportParams()
+			exportParams.Quality = quality
+			exportParams.StripMetadata = true
+			imageBytes, _, err = image.ExportGIF(exportParams)
+		case "heif":
+			exportParams := vips.NewHeifExportParams()
+			exportParams.Quality = quality
+			imageBytes, _, err = image.ExportHeif(exportParams)
+		case "avif":
+			exportParams := vips.NewAvifExportParams()
+			exportParams.Quality = quality
+			exportParams.StripMetadata = true
+			imageBytes, _, err = image.ExportAvif(exportParams)
+		default:
+			reportError(errors.New("unsupported format"))
+			return
+		}
 		if err != nil {
 			reportError(errors.Wrap(err, "error exporting image"))
 			return

@@ -36,3 +36,10 @@ func MustGetHostnameFromURL(input string) string {
 	}
 	return strings.TrimPrefix(url.Hostname(), "www.")
 }
+
+func Max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
