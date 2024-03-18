@@ -123,25 +123,11 @@ func (p *Processor) Process(ctx context.Context, input types.ImageProcessInput) 
 			imageBytes, _, err = image.Export(exportParams)
 		case "png":
 			exportParams := vips.NewPngExportParams()
-			exportParams.Compression = 9
+			exportParams.Compression = 8
 			exportParams.Quality = quality
 			exportParams.Palette = true
 			exportParams.StripMetadata = true
 			imageBytes, _, err = image.ExportPng(exportParams)
-		case "tiff":
-			exportParams := vips.NewTiffExportParams()
-			exportParams.Quality = quality
-			exportParams.StripMetadata = true
-			imageBytes, _, err = image.ExportTiff(exportParams)
-		case "gif":
-			exportParams := vips.NewGifExportParams()
-			exportParams.Quality = quality
-			exportParams.StripMetadata = true
-			imageBytes, _, err = image.ExportGIF(exportParams)
-		case "heif":
-			exportParams := vips.NewHeifExportParams()
-			exportParams.Quality = quality
-			imageBytes, _, err = image.ExportHeif(exportParams)
 		case "avif":
 			exportParams := vips.NewAvifExportParams()
 			exportParams.Quality = quality

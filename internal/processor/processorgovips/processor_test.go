@@ -86,11 +86,7 @@ func TestProcessor_Process_should_convert_file_if_operation_exists_but_the_file_
 	ctx := context.Background()
 	input := processInput()
 	resultFileName := uuid.NewString() + "." + "webp"
-
-	myImage := image.NewRGBA(image.Rect(0, 0, 100, 200))
-	var buff bytes.Buffer
-	png.Encode(&buff, myImage)
-	input.Buffer = buff.Bytes()
+	input.Buffer = getImageBuffer()
 
 	firstCall := comm.EXPECT().SendStartProcessing(input.JobID, input.FileID, input.FileName).Return(nil).Times(1)
 	secondCall := operationsRepo.EXPECT().GetByParams(ctx, gomock.Any()).Return(&models.Operation{
@@ -154,6 +150,13 @@ func processInput() types.ImageProcessInput {
 		Width:    100,
 		Height:   100,
 		Quality:  100,
-		Buffer:   []byte("test"),
+		Buffer:   getImageBuffer(),
 	}
+}
+
+func getImageBuffer() []byte {
+	myImage := image.NewRGBA(image.Rect(0, 0, 100, 200))
+	var buff bytes.Buffer
+	png.Encode(&buff, myImage)
+	return buff.Bytes()
 }

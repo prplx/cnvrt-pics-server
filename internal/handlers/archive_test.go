@@ -16,7 +16,7 @@ func Test_HandleArchiveJob__should_call_achiver_service_when_all_conditions_are_
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	jobID := 555
+	jobID := int64(555)
 	archiver := mocks.NewMockArchiver(ctrl)
 	mocks := &Mocks{
 		archiver: archiver,

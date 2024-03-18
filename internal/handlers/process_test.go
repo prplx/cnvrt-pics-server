@@ -21,13 +21,12 @@ func Test_HandleProcessJob__should_return_correct_response_when_all_conditions_a
 	defer ctrl.Finish()
 
 	fileName := "file.png"
-	jobID := 555
+	jobID := int64(555)
 	jobsRepo := mocks.NewMockJobs(ctrl)
 	communicator := mocks.NewMockCommunicator(ctrl)
 	logger := mocks.NewMockLogger(ctrl)
 	filesRepo := mocks.NewMockFiles(ctrl)
 	processor := mocks.NewMockProcessor(ctrl)
-	session := "session"
 	mocks := &Mocks{
 		jobsRepo:     jobsRepo,
 		filesRepo:    filesRepo,
@@ -35,7 +34,7 @@ func Test_HandleProcessJob__should_return_correct_response_when_all_conditions_a
 		logger:       logger,
 		processor:    processor,
 	}
-	jobsRepo.EXPECT().Create(gomock.Any(), session).Return(jobID, nil)
+	jobsRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Return(jobID, nil)
 	logger.EXPECT().PrintError(gomock.Any()).AnyTimes()
 	filesRepo.EXPECT().CreateBulk(gomock.Any(), jobID, []string{fileName}).Return([]models.File{
 		{
@@ -44,7 +43,7 @@ func Test_HandleProcessJob__should_return_correct_response_when_all_conditions_a
 		},
 	}, nil)
 	processor.EXPECT().Process(gomock.Any(), gomock.Any())
-	body, contentType := createFormFile(t, "file", fileName)
+	body, contentType := createFormFile(t, "image", fileName)
 	app, services := setup(t, mocks)
 
 	r := httptest.NewRequest(http.MethodPost, processEndpoint+"?format=webp&quality=80", body)
@@ -67,7 +66,7 @@ func Test_HandleProcessJob__should_return_400_when_required_params_is_missing(t 
 	defer ctrl.Finish()
 
 	mocks := &Mocks{}
-	body, contentType := createFormFile(t, "file", "file.png")
+	body, contentType := createFormFile(t, "image", "file.png")
 	app, services := setup(t, mocks)
 
 	testCases := []struct {

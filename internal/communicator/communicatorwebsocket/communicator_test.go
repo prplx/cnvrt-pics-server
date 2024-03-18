@@ -145,9 +145,13 @@ func Test_NewCommunicator__should_send_success_processing_job_to_respective_conn
 		"sourceFile":     sourceFileName,
 		"targetFile":     targetFileName,
 		"sourceFileSize": strconv.FormatInt(100, 10),
+		"originalWidth":  0,
+		"originalHeight": 0,
+		"format":         "",
 		"targetFileSize": strconv.FormatInt(200, 10),
 		"width":          100,
 		"height":         200,
+		"quality":        0,
 	})).Times(1).Return(nil)
 
 	comm.AddClient(jobID, connectionMock)

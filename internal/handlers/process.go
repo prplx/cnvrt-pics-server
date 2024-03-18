@@ -21,7 +21,6 @@ func (h *Handlers) HandleProcessJob(ctx *fiber.Ctx) error {
 	if err != nil {
 		return ctx.SendStatus(http.StatusInternalServerError)
 	}
-
 	session.Regenerate()
 
 	v := validator.NewValidator()
@@ -38,7 +37,6 @@ func (h *Handlers) HandleProcessJob(ctx *fiber.Ctx) error {
 		})
 		return ctx.SendStatus(http.StatusBadRequest)
 	}
-
 	jobID, err := h.services.Repositories.Jobs.Create(context.Background(), session.ID())
 	if err != nil {
 		h.services.Logger.PrintError(err, types.AnyMap{
