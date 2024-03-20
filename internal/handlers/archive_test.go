@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/prplx/cnvrt/internal/mocks"
 	"github.com/stretchr/testify/assert"
@@ -16,17 +17,23 @@ func Test_HandleArchiveJob__should_call_achiver_service_when_all_conditions_are_
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	jobID := int64(555)
+	jobID := 555
 	archiver := mocks.NewMockArchiver(ctrl)
 	mocks := &Mocks{
 		archiver: archiver,
 	}
-	archiver.EXPECT().Archive(jobID).Times(1)
 	app, services := setup(t, mocks)
 
 	r := httptest.NewRequest(http.MethodPost, fmt.Sprintf("%s/%d", archiveEndpoint, jobID), nil)
+	called := false
+	archiver.EXPECT().Archive(int64(jobID)).Do(func(_id int64) {
+		called = true
+	}).Times(1)
 
 	resp, _ := app.Test(r, -1)
+	assert.Eventually(t, func() bool {
+		return called
+	}, time.Second*5, 10*time.Millisecond)
 
 	assert.Equal(t, 200, resp.StatusCode)
 

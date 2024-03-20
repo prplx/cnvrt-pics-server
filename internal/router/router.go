@@ -96,6 +96,11 @@ func Register(app *fiber.App, handlers *handlers.Handlers, config *types.Config,
 			Table: "session",
 		})
 	}
+	if helpers.IsTest() {
+		sessionConfig.KeyGenerator = func() string {
+			return "session"
+		}
+	}
 	app.Use(limiter.New(limiterConfig))
 	app.Use("/ws", func(c *fiber.Ctx) error {
 		if websocket.IsWebSocketUpgrade(c) {

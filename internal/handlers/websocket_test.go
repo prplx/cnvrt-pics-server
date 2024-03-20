@@ -20,12 +20,12 @@ func TestHandleWebsocket__should_add_remove_client_and_return_when_error(t *test
 
 	err := errors.New("Some error")
 	mockConn.EXPECT().Params("jobID").Return("1")
-	communicator.EXPECT().AddClient(1, mockConn)
-	mockConn.EXPECT().ReadMessage().Return(int64(1), []byte("test"), nil).Times(1)
-	mockConn.EXPECT().ReadMessage().Return(int64(1), []byte("test"), err).Times(1)
+	communicator.EXPECT().AddClient(int64(1), mockConn)
+	mockConn.EXPECT().ReadMessage().Return(1, []byte("test"), nil).Times(1)
+	mockConn.EXPECT().ReadMessage().Return(1, []byte("test"), err).Times(1)
 	mockConn.EXPECT().Close()
 
-	communicator.EXPECT().RemoveClient(1)
+	communicator.EXPECT().RemoveClient(int64(1))
 
 	h := handlers.NewHandlers(services)
 

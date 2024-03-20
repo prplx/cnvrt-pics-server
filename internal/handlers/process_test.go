@@ -42,18 +42,23 @@ func Test_HandleProcessJob__should_return_correct_response_when_all_conditions_a
 			Name: fileName,
 		},
 	}, nil)
-	processor.EXPECT().Process(gomock.Any(), gomock.Any())
+	called := false
+	processor.EXPECT().Process(gomock.Any(), gomock.Any()).Do(func(_s any, _v any) {
+		called = true
+	}).Times(1)
 	body, contentType := createFormFile(t, "image", fileName)
 	app, services := setup(t, mocks)
 
 	r := httptest.NewRequest(http.MethodPost, processEndpoint+"?format=webp&quality=80", body)
 	r.Header.Add("Content-Type", contentType)
 
-	time.Sleep(1 * time.Second)
-
 	resp, _ := app.Test(r, -1)
 	got, _ := io.ReadAll(resp.Body)
 	want := `{"job_id":555}`
+
+	assert.Eventually(t, func() bool {
+		return called
+	}, time.Second*5, 10*time.Millisecond)
 
 	assert.Equal(t, want, string(got))
 	assert.Equal(t, 202, resp.StatusCode)
@@ -61,12 +66,11 @@ func Test_HandleProcessJob__should_return_correct_response_when_all_conditions_a
 	cleanUp(t, services)
 }
 
-func Test_HandleProcessJob__should_return_400_when_required_params_is_missing(t *testing.T) {
+func Test_HandleProcessJob__should_return_400_when_required_param_is_missing(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	mocks := &Mocks{}
-	body, contentType := createFormFile(t, "image", "file.png")
 	app, services := setup(t, mocks)
 
 	testCases := []struct {
@@ -88,13 +92,14 @@ func Test_HandleProcessJob__should_return_400_when_required_params_is_missing(t 
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			body, contentType := createFormFile(t, "image", "file.png")
 			r := httptest.NewRequest(http.MethodPost, tc.url, body)
 			r.Header.Add("Content-Type", contentType)
 			resp, _ := app.Test(r, -1)
 			got, _ := io.ReadAll(resp.Body)
 
 			assert.Equal(t, tc.want, string(got))
-			assert.Equal(t, 400, resp.StatusCode)
+			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 		})
 	}
 
@@ -118,6 +123,7 @@ func Test_HandleProcessFile__should_return_correct_response_when_all_conditions_
 	}
 	filesRepo.EXPECT().GetWithJobByID(gomock.Any(), fileID).Return(&models.File{
 		Name: fileName,
+		Job:  &models.Job{ID: jobID, Session: "session"},
 	}, nil).Times(1)
 
 	app, services := setup(t, mocks)
@@ -138,7 +144,7 @@ func Test_HandleProcessFile__should_return_correct_response_when_all_conditions_
 	if err != nil {
 		t.Fatal(err)
 	}
-
+	called := false
 	processor.EXPECT().Process(gomock.Any(), gomock.Eq(types.ImageProcessInput{
 		JobID:    jobID,
 		FileID:   fileID,
@@ -148,12 +154,18 @@ func Test_HandleProcessFile__should_return_correct_response_when_all_conditions_
 		Width:    100,
 		Height:   100,
 		Buffer:   buffer,
-	}))
+	})).Do(func(_s any, _v any) {
+		called = true
+	}).Times(1)
 
 	url := fmt.Sprintf("%s/%d?format=webp&quality=80&file_id=%d&width=100&height=100", processEndpoint, jobID, fileID)
 	r := httptest.NewRequest(http.MethodPost, url, nil)
 
 	resp, _ := app.Test(r, -1)
+
+	assert.Eventually(t, func() bool {
+		return called
+	}, time.Second*5, 10*time.Millisecond)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 	cleanUp(t, services)
