@@ -44,11 +44,15 @@ func TestConfig() *types.Config {
 			UploadDir: "./temp",
 		},
 		App: struct {
-			Name            string `yaml:"name"`
-			JobFlushTimeout int    `yaml:"jobFlushTimeout"`
-			MetricsUser     string
-			MetricsPassword string
+			Name               string `yaml:"name"`
+			JobFlushTimeout    int    `yaml:"jobFlushTimeout"`
+			MetricsUser        string
+			MetricsPassword    string
+			SupportedFileTypes string `yaml:"supportedFileTypes"`
+			MaxFileCount       int    `yaml:"maxFileCount"`
 		}{
-			Name: "cnvrt",
+			Name:               "cnvrt",
+			MaxFileCount:       5,
+			SupportedFileTypes: "jpg,jpeg,png",
 		}}
 }

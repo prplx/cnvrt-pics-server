@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"io"
 	"os"
-	"runtime/debug"
 	"sync"
 	"time"
 
@@ -97,9 +96,9 @@ func (l *Logger) print(level Level, message string, properties ...types.AnyMap) 
 	}
 
 	// Include a stack trace for entries at the ERROR and FATAL levels.
-	if level >= LevelError {
-		aux.Trace = string(debug.Stack())
-	}
+	// if level >= LevelError {
+	// 	aux.Trace = string(debug.Stack())
+	// }
 
 	// Declare a line variable for holding the actual log entry text.
 	var line []byte

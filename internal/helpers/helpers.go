@@ -43,3 +43,20 @@ func Max(a, b int) int {
 	}
 	return b
 }
+
+func Contains[T comparable](s []T, e T) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
+func GetMapKeys[T comparable](m map[string][]T) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return keys
+}

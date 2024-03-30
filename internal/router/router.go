@@ -118,9 +118,11 @@ func Register(app *fiber.App, handlers *handlers.Handlers, config *types.Config,
 	app.Get(healthcheckEndpoint, handlers.Healthcheck)
 
 	v1 := app.Group("/api/v1")
-	v1.Post("/process", checkFormFileLength, handlers.HandleProcessJob)
-	v1.Post("/process/:jobID", handlers.HandleProcessFile)
-	v1.Put("/process/:jobID", handlers.HandleAddFileToJob)
+	v1.Post("/process", func(ctx *fiber.Ctx) error { return checkQueryParams(ctx, "format", "quality") }, func(ctx *fiber.Ctx) error { return checkFormFileLength(ctx, config) }, handlers.HandleProcessJob)
+	v1.Post("/process/:jobID", func(ctx *fiber.Ctx) error {
+		return checkQueryParams(ctx, "format", "quality", "file_id", "width", "height")
+	}, handlers.HandleProcessFile)
+	v1.Put("/process/:jobID", func(ctx *fiber.Ctx) error { return checkQueryParams(ctx, "format", "quality") }, handlers.HandleAddFileToJob)
 	v1.Delete("/process/:jobID", handlers.HandleDeleteFileFromJob)
 	v1.Post("/archive/:jobID", handlers.HandleArchiveJob)
 	v1.Get("/ws/:jobID", websocket.New(func(c *websocket.Conn) {

@@ -17,10 +17,12 @@ type Config struct {
 		DSN string
 	}
 	App struct {
-		Name            string `yaml:"name"`
-		JobFlushTimeout int    `yaml:"jobFlushTimeout"`
-		MetricsUser     string
-		MetricsPassword string
+		Name               string `yaml:"name"`
+		JobFlushTimeout    int    `yaml:"jobFlushTimeout"`
+		MetricsUser        string
+		MetricsPassword    string
+		SupportedFileTypes string `yaml:"supportedFileTypes"`
+		MaxFileCount       int    `yaml:"maxFileCount"`
 	}
 	Firebase struct {
 		AppCheckHeader string `yaml:"appCheckHeader"`

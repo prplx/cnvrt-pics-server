@@ -9,6 +9,7 @@ require (
 	github.com/gofiber/fiber/v2 v2.51.0
 	github.com/gofiber/storage/postgres/v3 v3.0.0-20231222121935-c3d011b5be82
 	github.com/google/uuid v1.5.0
+	github.com/h2non/filetype v1.1.3
 	github.com/jackc/pgx/v5 v5.5.1
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/afero v1.9.5

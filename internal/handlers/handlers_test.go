@@ -12,12 +12,12 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/prplx/cnvrt/internal/config"
 	"github.com/prplx/cnvrt/internal/handlers"
 	"github.com/prplx/cnvrt/internal/mocks"
 	"github.com/prplx/cnvrt/internal/repositories"
 	"github.com/prplx/cnvrt/internal/router"
 	svc "github.com/prplx/cnvrt/internal/services"
-	"github.com/prplx/cnvrt/internal/types"
 	"github.com/spf13/afero"
 )
 
@@ -88,17 +88,12 @@ func createFormFile(t *testing.T, fieldName, filePath string) (*bytes.Buffer, st
 	return body, mw.FormDataContentType()
 }
 
-func getServices(_ *testing.T, mocks *Mocks) svc.Services {
+func getServices(t *testing.T, mocks *Mocks) svc.Services {
+	t.Helper()
 	return svc.Services{
 		Communicator: mocks.communicator,
 		Logger:       mocks.logger,
-		Config: &types.Config{
-			Process: struct {
-				UploadDir string `yaml:"uploadDir"`
-			}{
-				UploadDir: "./uploads",
-			},
-		},
+		Config:       config.TestConfig(),
 		Repositories: &repositories.Repositories{
 			Jobs:  mocks.jobsRepo,
 			Files: mocks.filesRepo,

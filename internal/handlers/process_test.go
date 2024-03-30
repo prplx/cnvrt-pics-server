@@ -70,40 +70,7 @@ func Test_HandleProcessJob__should_return_400_when_required_param_is_missing(t *
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mocks := &Mocks{}
-	app, services := setup(t, mocks)
-
-	testCases := []struct {
-		name string
-		url  string
-		want string
-	}{
-		{
-			name: "format",
-			url:  processEndpoint + "?quality=80",
-			want: `{"errors":{"format":"format is required"}}`,
-		},
-		{
-			name: "quality",
-			url:  processEndpoint + "?format=webp",
-			want: `{"errors":{"quality":"quality is required"}}`,
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			body, contentType := createFormFile(t, "image", "file.png")
-			r := httptest.NewRequest(http.MethodPost, tc.url, body)
-			r.Header.Add("Content-Type", contentType)
-			resp, _ := app.Test(r, -1)
-			got, _ := io.ReadAll(resp.Body)
-
-			assert.Equal(t, tc.want, string(got))
-			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-		})
-	}
-
-	cleanUp(t, services)
+	assureQualityAndFormatPresence(t, processEndpoint, http.MethodPost)
 }
 
 func Test_HandleProcessFile__should_return_correct_response_when_all_conditions_are_met(t *testing.T) {
@@ -219,6 +186,51 @@ func Test_HandleProcessFile__should_return_400_when_required_param_is_missing(t 
 
 			assert.Equal(t, tc.want, string(got))
 			assert.Equal(t, 400, resp.StatusCode)
+		})
+	}
+
+	cleanUp(t, services)
+}
+
+func Test_HandleAddFileToJob__should_return_400_when_required_param_is_missing(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	assureQualityAndFormatPresence(t, processEndpoint+"/555", http.MethodPut)
+}
+
+func assureQualityAndFormatPresence(t *testing.T, endpoint string, method string) {
+	t.Helper()
+	mocks := &Mocks{}
+	app, services := setup(t, mocks)
+
+	testCases := []struct {
+		name string
+		url  string
+		want string
+	}{
+		{
+			name: "format",
+			url:  endpoint + "?quality=80",
+			want: `{"errors":{"format":"format is required"}}`,
+		},
+		{
+			name: "quality",
+			url:  endpoint + "?format=webp",
+			want: `{"errors":{"quality":"quality is required"}}`,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			body, contentType := createFormFile(t, "image", "file.png")
+			r := httptest.NewRequest(method, tc.url, body)
+			r.Header.Add("Content-Type", contentType)
+			resp, _ := app.Test(r, -1)
+			got, _ := io.ReadAll(resp.Body)
+
+			assert.Equal(t, tc.want, string(got))
+			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 		})
 	}
 

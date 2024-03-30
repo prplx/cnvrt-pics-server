@@ -9,6 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/prplx/cnvrt/internal/helpers"
 	"github.com/prplx/cnvrt/internal/types"
+	"github.com/prplx/cnvrt/internal/validator"
 )
 
 func requireAppCheck(appCheck *appcheck.Client, appCheckToken string) error {
@@ -40,16 +41,33 @@ func checkAppCheckToken(ctx *fiber.Ctx) error {
 	return ctx.Next()
 }
 
-func checkFormFileLength(ctx *fiber.Ctx) error {
+func checkFormFileLength(ctx *fiber.Ctx, config *types.Config) error {
 	form, err := ctx.MultipartForm()
 	if err != nil {
 		return ctx.SendStatus(http.StatusBadRequest)
 	}
 
 	images := form.File["image"]
-	if len(images) > 10 || len(images) == 0 {
+	if len(images) > config.App.MaxFileCount || len(images) == 0 {
 		return ctx.SendStatus(http.StatusBadRequest)
 	}
 
 	return ctx.Next()
+}
+
+func checkQueryParams(ctx *fiber.Ctx, params ...string) error {
+	v := validator.NewValidator()
+	if validateRequestQueryParams(v, ctx, params...); !v.Valid() {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"errors": v.Errors,
+		})
+	}
+
+	return ctx.Next()
+}
+
+func validateRequestQueryParams(v *validator.Validator, ctx *fiber.Ctx, requiredParams ...string) {
+	for _, param := range requiredParams {
+		v.Check(ctx.Query(param) != "", param, param+" is required")
+	}
 }

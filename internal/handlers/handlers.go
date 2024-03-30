@@ -7,7 +7,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/prplx/cnvrt/internal/services"
 	"github.com/prplx/cnvrt/internal/types"
-	"github.com/prplx/cnvrt/internal/validator"
 )
 
 type Handlers struct {
@@ -24,12 +23,6 @@ func (h *Handlers) Healthcheck(ctx *fiber.Ctx) error {
 	return ctx.JSON(fiber.Map{
 		"status": "ok",
 	})
-}
-
-func validateRequestQueryParams(v *validator.Validator, ctx *fiber.Ctx, requiredParams ...string) {
-	for _, param := range requiredParams {
-		v.Check(ctx.Query(param) != "", param, param+" is required")
-	}
 }
 
 func (h *Handlers) readFile(path string) ([]byte, error) {
