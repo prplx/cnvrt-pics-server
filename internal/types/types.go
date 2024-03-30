@@ -3,12 +3,13 @@ package types
 type Config struct {
 	Env    string
 	Server struct {
-		AllowOrigins string `yaml:"allowOrigins"`
-		AllowHeaders string `yaml:"allowHeaders"`
-		AllowMethods string `yaml:"allowMethods"`
-		BodyLimit    int    `yaml:"bodyLimit"`
-		Host         string `yaml:"host"`
-		Port         int    `yaml:"port"`
+		AllowOrigins    string `yaml:"allowOrigins"`
+		AllowHeaders    string `yaml:"allowHeaders"`
+		AllowMethods    string `yaml:"allowMethods"`
+		BodyLimit       int    `yaml:"bodyLimit"`
+		Host            string `yaml:"host"`
+		Port            int    `yaml:"port"`
+		ShutdownTimeout int    `yaml:"shutdownTimeout"`
 	}
 	Process struct {
 		UploadDir string `yaml:"uploadDir"`

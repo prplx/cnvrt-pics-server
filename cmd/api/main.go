@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/prplx/cnvrt/internal/archiver"
@@ -18,6 +21,7 @@ import (
 	"github.com/prplx/cnvrt/internal/router"
 	"github.com/prplx/cnvrt/internal/scheduler"
 	"github.com/prplx/cnvrt/internal/services"
+	"github.com/prplx/cnvrt/internal/types"
 )
 
 func main() {
@@ -60,5 +64,24 @@ func main() {
 	handlers := handlers.NewHandlers(services)
 	router.Register(app, handlers, config, db.Pool)
 
-	log.Fatal(app.Listen(fmt.Sprintf("%s:%d", config.Server.Host, config.Server.Port)))
+	shutdownError := make(chan error)
+	go func() {
+		quit := make(chan os.Signal, 1)
+		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+		s := <-quit
+		logger.PrintInfo("Caught signal", types.AnyMap{"signal": s})
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(config.Server.ShutdownTimeout)*time.Second)
+		defer cancel()
+
+		shutdownError <- app.ShutdownWithContext(ctx)
+	}()
+
+	logger.PrintInfo("Starting server", types.AnyMap{"host": config.Server.Host, "port": config.Server.Port})
+	app.Listen(fmt.Sprintf("%s:%d", config.Server.Host, config.Server.Port))
+
+	if err = <-shutdownError; err != nil {
+		log.Fatal(err)
+	}
+
+	logger.PrintInfo("Server stopped", nil)
 }

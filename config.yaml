@@ -3,6 +3,7 @@ server:
   allowMethods: GET, POST, PUT, DELETE, OPTIONS,
   bodyLimit: 20 # bytes * 1024 * 1024
   host: 0.0.0.0
+  shutdownTimeout: 30 # seconds
 
 app:
   name: cnvrt
