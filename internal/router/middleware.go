@@ -8,8 +8,8 @@ import (
 	"firebase.google.com/go/v4/appcheck"
 	"github.com/gofiber/fiber/v2"
 	"github.com/prplx/cnvrt/internal/helpers"
+	"github.com/prplx/cnvrt/internal/services/validator"
 	"github.com/prplx/cnvrt/internal/types"
-	"github.com/prplx/cnvrt/internal/validator"
 )
 
 func requireAppCheck(appCheck *appcheck.Client, appCheckToken string) error {

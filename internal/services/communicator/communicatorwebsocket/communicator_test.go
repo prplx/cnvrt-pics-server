@@ -4,8 +4,8 @@ import (
 	"strconv"
 	"testing"
 
-	communicator "github.com/prplx/cnvrt/internal/communicator/communicatorwebsocket"
 	"github.com/prplx/cnvrt/internal/mocks"
+	communicator "github.com/prplx/cnvrt/internal/services/communicator/communicatorwebsocket"
 	"github.com/prplx/cnvrt/internal/types"
 	"go.uber.org/mock/gomock"
 )

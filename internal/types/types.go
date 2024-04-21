@@ -1,5 +1,7 @@
 package types
 
+import "io"
+
 type Config struct {
 	Env    string
 	Server struct {
@@ -39,7 +41,7 @@ type ImageProcessInput struct {
 	Quality  int
 	Width    int
 	Height   int
-	Buffer   []byte
+	Buffer   io.Reader
 }
 
 type SuccessResult struct {

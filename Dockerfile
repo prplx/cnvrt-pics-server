@@ -75,8 +75,7 @@ RUN go mod download
 
 COPY . .
 
-# RUN if [ "$TARGETARCH" = "amd64" ]; then touch .envrc && make test; fi
-RUN if [ "$TARGETARCH" = "amd64" ]; then touch .envrc; fi
+RUN touch .envrc && make test
 RUN go build -o ${GOPATH}/bin/cnvrt ./cmd/api/main.go
 RUN make db/migrate_up
 

@@ -2,6 +2,7 @@ package processorgovips
 
 import (
 	"context"
+	"io"
 	"os"
 	"time"
 
@@ -49,7 +50,16 @@ func (p *Processor) Process(ctx context.Context, input types.ImageProcessInput) 
 	width := input.Width
 	height := input.Height
 	quality := input.Quality
-	buffer := input.Buffer
+	buffer, err := io.ReadAll(input.Buffer)
+	if err != nil {
+		p.communicator.SendErrorProcessing(jobID, fileID, fileName)
+		p.logger.PrintError(err, types.AnyMap{
+			"job_id":  jobID,
+			"file":    fileName,
+			"message": "error reading buffer",
+		})
+		return
+	}
 	var resultFileName string
 	var existingJobFileExists bool
 	var originalWidth int

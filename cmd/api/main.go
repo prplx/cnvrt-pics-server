@@ -10,17 +10,17 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/prplx/cnvrt/internal/archiver"
-	communicator "github.com/prplx/cnvrt/internal/communicator/communicatorwebsocket"
 	"github.com/prplx/cnvrt/internal/config"
 	"github.com/prplx/cnvrt/internal/handlers"
-	"github.com/prplx/cnvrt/internal/jsonlog"
 	"github.com/prplx/cnvrt/internal/pg"
-	processor "github.com/prplx/cnvrt/internal/processor/processorgovips"
 	"github.com/prplx/cnvrt/internal/repositories"
 	"github.com/prplx/cnvrt/internal/router"
-	"github.com/prplx/cnvrt/internal/scheduler"
 	"github.com/prplx/cnvrt/internal/services"
+	"github.com/prplx/cnvrt/internal/services/archiver"
+	communicator "github.com/prplx/cnvrt/internal/services/communicator/communicatorwebsocket"
+	"github.com/prplx/cnvrt/internal/services/jsonlog"
+	processor "github.com/prplx/cnvrt/internal/services/processor/processorgovips"
+	"github.com/prplx/cnvrt/internal/services/scheduler"
 	"github.com/prplx/cnvrt/internal/types"
 )
 

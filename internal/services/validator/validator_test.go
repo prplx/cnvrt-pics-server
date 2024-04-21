@@ -3,7 +3,7 @@ package validator_test
 import (
 	"testing"
 
-	"github.com/prplx/cnvrt/internal/validator"
+	"github.com/prplx/cnvrt/internal/services/validator"
 	"github.com/stretchr/testify/assert"
 )
 

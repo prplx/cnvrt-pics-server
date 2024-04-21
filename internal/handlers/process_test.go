@@ -1,6 +1,7 @@
 package handlers_test
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"net/http"
@@ -120,7 +121,7 @@ func Test_HandleProcessFile__should_return_correct_response_when_all_conditions_
 		Quality:  80,
 		Width:    100,
 		Height:   100,
-		Buffer:   buffer,
+		Buffer:   bytes.NewReader(buffer),
 	})).Do(func(_s any, _v any) {
 		called = true
 	}).Times(1)

@@ -3,13 +3,14 @@ package processorgovips_test
 import (
 	"context"
 	"errors"
+	"io"
 	"os"
 	"testing"
 
 	"github.com/google/uuid"
 	"github.com/prplx/cnvrt/internal/helpers"
 	"github.com/prplx/cnvrt/internal/mocks"
-	processor "github.com/prplx/cnvrt/internal/processor/processorgovips"
+	processor "github.com/prplx/cnvrt/internal/services/processor/processorgovips"
 
 	"math/rand"
 
@@ -120,7 +121,7 @@ func TestProcessor_Process_should_convert_file_if_neither_operation_nor_file_loc
 	myImage := image.NewRGBA(image.Rect(0, 0, 100, 200))
 	var buff bytes.Buffer
 	png.Encode(&buff, myImage)
-	input.Buffer = buff.Bytes()
+	input.Buffer = bytes.NewReader(buff.Bytes())
 
 	firstCall := comm.EXPECT().SendStartProcessing(input.JobID, input.FileID, input.FileName).Return(nil).Times(1)
 	secondCall := operationsRepo.EXPECT().GetByParams(ctx, gomock.Any()).Return(nil, nil).Times(1).After(firstCall)
@@ -154,9 +155,9 @@ func processInput() types.ImageProcessInput {
 	}
 }
 
-func getImageBuffer() []byte {
+func getImageBuffer() io.Reader {
 	myImage := image.NewRGBA(image.Rect(0, 0, 100, 200))
 	var buff bytes.Buffer
 	png.Encode(&buff, myImage)
-	return buff.Bytes()
+	return bytes.NewReader(buff.Bytes())
 }

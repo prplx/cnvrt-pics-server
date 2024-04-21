@@ -8,7 +8,7 @@ import (
 	"github.com/prplx/cnvrt/internal/config"
 	"github.com/prplx/cnvrt/internal/mocks"
 	"github.com/prplx/cnvrt/internal/models"
-	sch "github.com/prplx/cnvrt/internal/scheduler"
+	sch "github.com/prplx/cnvrt/internal/services/scheduler"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )

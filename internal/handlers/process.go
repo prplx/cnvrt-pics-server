@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net/http"
@@ -109,7 +110,7 @@ func (h *Handlers) HandleProcessJob(ctx *fiber.Ctx) error {
 
 	for fileName, buffer := range fileNameToBuffer {
 		fileID := fileNameToID[fileName]
-		go h.services.Processor.Process(context.Background(), types.ImageProcessInput{JobID: jobID, FileID: fileID, FileName: fileName, Format: reqFormat, Quality: quality, Buffer: buffer})
+		go h.services.Processor.Process(context.Background(), types.ImageProcessInput{JobID: jobID, FileID: fileID, FileName: fileName, Format: reqFormat, Quality: quality, Buffer: bytes.NewReader(buffer)})
 	}
 
 	return ctx.Status(http.StatusAccepted).JSON(fiber.Map{
@@ -200,7 +201,7 @@ func (h *Handlers) HandleProcessFile(ctx *fiber.Ctx) error {
 		return ctx.SendStatus(http.StatusBadRequest)
 	}
 
-	go h.services.Processor.Process(context.Background(), types.ImageProcessInput{JobID: jobID, FileID: fileID, FileName: file.Name, Format: format, Quality: quality, Width: reqFileWidth, Height: reqFileHeight, Buffer: buffer})
+	go h.services.Processor.Process(context.Background(), types.ImageProcessInput{JobID: jobID, FileID: fileID, FileName: file.Name, Format: format, Quality: quality, Width: reqFileWidth, Height: reqFileHeight, Buffer: bytes.NewReader(buffer)})
 
 	return nil
 }
@@ -305,7 +306,7 @@ func (h *Handlers) HandleAddFileToJob(ctx *fiber.Ctx) error {
 		return ctx.SendStatus(http.StatusInternalServerError)
 	}
 
-	go h.services.Processor.Process(context.Background(), types.ImageProcessInput{JobID: jobID, FileID: dbFile.ID, FileName: fileName, Format: reqFormat, Quality: quality, Buffer: buffer})
+	go h.services.Processor.Process(context.Background(), types.ImageProcessInput{JobID: jobID, FileID: dbFile.ID, FileName: fileName, Format: reqFormat, Quality: quality, Buffer: bytes.NewReader(buffer)})
 
 	return nil
 }

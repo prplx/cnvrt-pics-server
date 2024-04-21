@@ -2,6 +2,7 @@ package router
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -50,6 +51,13 @@ func Register(app *fiber.App, handlers *handlers.Handlers, config *types.Config,
 
 	app.Static(uploadsDir, config.Process.UploadDir, fiber.Static{
 		Download: true,
+		ModifyResponse: func(c *fiber.Ctx) error {
+			download := c.Query("download")
+			if download != "" {
+				c.Response().Header.Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", download))
+			}
+			return nil
+		},
 	})
 	app.Use(recover.New())
 	app.Use(helmet.New())

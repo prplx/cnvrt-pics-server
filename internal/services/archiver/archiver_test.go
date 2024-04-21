@@ -11,10 +11,10 @@ import (
 
 	"math/rand"
 
-	"github.com/prplx/cnvrt/internal/archiver"
 	"github.com/prplx/cnvrt/internal/config"
 	"github.com/prplx/cnvrt/internal/helpers"
 	"github.com/prplx/cnvrt/internal/models"
+	"github.com/prplx/cnvrt/internal/services/archiver"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
