@@ -70,7 +70,7 @@ func main() {
 		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 		s := <-quit
 		logger.PrintInfo("Caught signal", types.AnyMap{"signal": s})
-		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(config.Server.ShutdownTimeout)*time.Second)
+		ctx, cancel := context.WithTimeout(ctx, time.Duration(config.Server.ShutdownTimeout)*time.Second)
 		defer cancel()
 
 		shutdownError <- app.ShutdownWithContext(ctx)

@@ -16,6 +16,8 @@ import (
 )
 
 func (h *Handlers) HandleProcessJob(ctx *fiber.Ctx) error {
+	ctxb := context.Background()
+
 	session, err := h.getSession(ctx)
 	if err != nil {
 		return ctx.SendStatus(http.StatusInternalServerError)
@@ -29,7 +31,7 @@ func (h *Handlers) HandleProcessJob(ctx *fiber.Ctx) error {
 		})
 		return ctx.SendStatus(http.StatusBadRequest)
 	}
-	jobID, err := h.services.Repositories.Jobs.Create(context.Background(), session.ID())
+	jobID, err := h.services.Repositories.Jobs.Create(ctxb, session.ID())
 	if err != nil {
 		h.services.Logger.PrintError(err, types.AnyMap{
 			"message": "error creating job",
@@ -95,7 +97,7 @@ func (h *Handlers) HandleProcessJob(ctx *fiber.Ctx) error {
 		}
 	}
 
-	dbFiles, err := h.services.Repositories.Files.CreateBulk(context.Background(), jobID, helpers.GetMapKeys(fileNameToBuffer))
+	dbFiles, err := h.services.Repositories.Files.CreateBulk(ctxb, jobID, helpers.GetMapKeys(fileNameToBuffer))
 	if err != nil {
 		h.services.Logger.PrintError(err, types.AnyMap{
 			"message": "error creating file records",
@@ -110,7 +112,7 @@ func (h *Handlers) HandleProcessJob(ctx *fiber.Ctx) error {
 
 	for fileName, buffer := range fileNameToBuffer {
 		fileID := fileNameToID[fileName]
-		go h.services.Processor.Process(context.Background(), types.ImageProcessInput{JobID: jobID, FileID: fileID, FileName: fileName, Format: reqFormat, Quality: quality, Buffer: bytes.NewReader(buffer)})
+		go h.services.Processor.Process(ctxb, types.ImageProcessInput{JobID: jobID, FileID: fileID, FileName: fileName, Format: reqFormat, Quality: quality, Buffer: bytes.NewReader(buffer)})
 	}
 
 	return ctx.Status(http.StatusAccepted).JSON(fiber.Map{
@@ -119,6 +121,8 @@ func (h *Handlers) HandleProcessJob(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) HandleProcessFile(ctx *fiber.Ctx) error {
+	ctxb := context.Background()
+
 	session, err := h.getSession(ctx)
 	if err != nil {
 		return ctx.SendStatus(http.StatusInternalServerError)
@@ -156,7 +160,7 @@ func (h *Handlers) HandleProcessFile(ctx *fiber.Ctx) error {
 		return ctx.SendStatus(http.StatusBadRequest)
 	}
 
-	file, err := h.services.Repositories.Files.GetWithJobByID(context.Background(), reqFileIDInt)
+	file, err := h.services.Repositories.Files.GetWithJobByID(ctxb, reqFileIDInt)
 	if err != nil {
 		h.services.Logger.PrintError(err, types.AnyMap{
 			"message": "error getting file by id",
@@ -201,12 +205,14 @@ func (h *Handlers) HandleProcessFile(ctx *fiber.Ctx) error {
 		return ctx.SendStatus(http.StatusBadRequest)
 	}
 
-	go h.services.Processor.Process(context.Background(), types.ImageProcessInput{JobID: jobID, FileID: fileID, FileName: file.Name, Format: format, Quality: quality, Width: reqFileWidth, Height: reqFileHeight, Buffer: bytes.NewReader(buffer)})
+	go h.services.Processor.Process(ctxb, types.ImageProcessInput{JobID: jobID, FileID: fileID, FileName: file.Name, Format: format, Quality: quality, Width: reqFileWidth, Height: reqFileHeight, Buffer: bytes.NewReader(buffer)})
 
 	return nil
 }
 
 func (h *Handlers) HandleAddFileToJob(ctx *fiber.Ctx) error {
+	ctxb := context.Background()
+
 	reqJobID := ctx.Params("jobID")
 	if reqJobID == "" {
 		h.services.Logger.PrintError(JobIDIsNotFound)
@@ -270,7 +276,7 @@ func (h *Handlers) HandleAddFileToJob(ctx *fiber.Ctx) error {
 		return ctx.SendStatus(http.StatusForbidden)
 	}
 
-	dbFiles, err := h.services.Repositories.Files.GetByJobID(context.Background(), jobID)
+	dbFiles, err := h.services.Repositories.Files.GetByJobID(ctxb, jobID)
 	if err != nil {
 		h.services.Logger.PrintError(err, types.AnyMap{
 			"message": "error getting files by job id",
@@ -298,7 +304,7 @@ func (h *Handlers) HandleAddFileToJob(ctx *fiber.Ctx) error {
 		return ctx.SendStatus(http.StatusInternalServerError)
 	}
 
-	dbFile, err := h.services.Repositories.Files.AddToJob(context.Background(), jobID, fileName)
+	dbFile, err := h.services.Repositories.Files.AddToJob(ctxb, jobID, fileName)
 	if err != nil {
 		h.services.Logger.PrintError(err, types.AnyMap{
 			"message": "error adding file to job",
@@ -306,12 +312,14 @@ func (h *Handlers) HandleAddFileToJob(ctx *fiber.Ctx) error {
 		return ctx.SendStatus(http.StatusInternalServerError)
 	}
 
-	go h.services.Processor.Process(context.Background(), types.ImageProcessInput{JobID: jobID, FileID: dbFile.ID, FileName: fileName, Format: reqFormat, Quality: quality, Buffer: bytes.NewReader(buffer)})
+	go h.services.Processor.Process(ctxb, types.ImageProcessInput{JobID: jobID, FileID: dbFile.ID, FileName: fileName, Format: reqFormat, Quality: quality, Buffer: bytes.NewReader(buffer)})
 
 	return nil
 }
 
 func (h *Handlers) HandleDeleteFileFromJob(ctx *fiber.Ctx) error {
+	ctxb := context.Background()
+
 	reqJobID := ctx.Params("jobID")
 	reqFileID := ctx.Query("file_id")
 	if reqJobID == "" || reqFileID == "" {
@@ -340,7 +348,7 @@ func (h *Handlers) HandleDeleteFileFromJob(ctx *fiber.Ctx) error {
 		return ctx.SendStatus(http.StatusForbidden)
 	}
 
-	err = h.services.Repositories.Files.DeleteFromJob(context.Background(), jobID, fileID)
+	err = h.services.Repositories.Files.DeleteFromJob(ctxb, jobID, fileID)
 	if err != nil {
 		h.services.Logger.PrintError(err, types.AnyMap{
 			"message": "error deleting file",

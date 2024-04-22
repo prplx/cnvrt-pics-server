@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"sync"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -31,7 +32,9 @@ func NewPG(ctx context.Context, connString string) *postgres {
 }
 
 func (pg *postgres) Ping(ctx context.Context) error {
-	return pg.Pool.Ping(ctx)
+	ctxwt, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	return pg.Pool.Ping(ctxwt)
 }
 
 func (pg *postgres) Close() {
