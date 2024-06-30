@@ -50,6 +50,7 @@ mocks:
 	mockgen -source=internal/types/types.go --destination=internal/mocks/types.go --package=mocks
 
 db/migrate_up:
+	echo ${DB_DSN}
 	migrate -path=./migrations -database=${DB_DSN} up
 
 db/migrate_down:
