@@ -77,6 +77,8 @@ COPY . .
 
 RUN touch .envrc && make test
 RUN go build -o ${GOPATH}/bin/cnvrt ./cmd/api/main.go
+RUN echo ${DB_DSN}
+RUN echo $db_dsn 
 RUN make db/migrate_up
 
 FROM debian:bullseye-slim
