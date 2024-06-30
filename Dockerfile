@@ -5,10 +5,10 @@ ARG VIPS_VERSION=8.14.5
 ARG CGIF_VERSION=0.3.0
 ARG LIBSPNG_VERSION=0.7.3
 ARG TARGETARCH
-ARG db_dsn
+# ARG db_dsn
 
 ENV PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
-ENV DB_DSN=$db_dsn
+# ENV DB_DSN=$db_dsn
 
 # libaom3 is in Debian bullseye-backports
 RUN echo 'deb http://deb.debian.org/debian bullseye-backports main' > /etc/apt/sources.list.d/backports.list
