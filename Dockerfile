@@ -76,7 +76,7 @@ COPY . .
 
 RUN touch .envrc && make test
 RUN go build -o ${GOPATH}/bin/cnvrt ./cmd/api/main.go
-RUN migrate -path=./migrations -database=${DB_DSN}?sslmode=disabled up
+RUN migrate -path=./migrations -database=${DB_DSN}?sslmode=disable up
 
 FROM debian:bullseye-slim
 
