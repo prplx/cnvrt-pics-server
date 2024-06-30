@@ -5,10 +5,9 @@ ARG VIPS_VERSION=8.14.5
 ARG CGIF_VERSION=0.3.0
 ARG LIBSPNG_VERSION=0.7.3
 ARG TARGETARCH
-ARG db_dsn
+ARG DB_DSN
 
 ENV PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
-# ENV DB_DSN=$db_dsn
 
 # libaom3 is in Debian bullseye-backports
 RUN echo 'deb http://deb.debian.org/debian bullseye-backports main' > /etc/apt/sources.list.d/backports.list
@@ -58,7 +57,7 @@ RUN DEBIAN_FRONTEND=noninteractive \
     -Dintrospection=false && \
     ninja -C _build && \
     ninja -C _build install && \
-    curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-arm64.tar.gz | tar xvz && \
+    curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-amd64.tar.gz | tar xvz && \
     mv migrate $GOPATH/bin/migrate && \
   ldconfig && \
   rm -rf /usr/local/lib/python* && \
@@ -75,10 +74,8 @@ RUN go mod download
 
 COPY . .
 
-# RUN touch .envrc && make test
+RUN touch .envrc && make test
 RUN go build -o ${GOPATH}/bin/cnvrt ./cmd/api/main.go
-# RUN make db/migrate_up
-# RUN migrate -path=./migrations -database=$db_dsn up
 
 FROM debian:bullseye-slim
 
