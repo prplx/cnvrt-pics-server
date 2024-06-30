@@ -58,7 +58,7 @@ RUN DEBIAN_FRONTEND=noninteractive \
     -Dintrospection=false && \
     ninja -C _build && \
     ninja -C _build install && \
-    curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-amd64.tar.gz | tar xvz && \
+    curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-arm64.tar.gz | tar xvz && \
     mv migrate $GOPATH/bin/migrate && \
   ldconfig && \
   rm -rf /usr/local/lib/python* && \
