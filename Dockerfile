@@ -14,6 +14,7 @@ ENV DB_DSN=$db_dsn
 RUN echo 'deb http://deb.debian.org/debian bullseye-backports main' > /etc/apt/sources.list.d/backports.list
 
 RUN echo ${DB_DSN}
+RUN echo ${DB_DSN2}
 RUN echo ${db_dsn}
 
 # Installs libvips + required libraries
