@@ -13,10 +13,6 @@ ENV DB_DSN=$db_dsn
 # libaom3 is in Debian bullseye-backports
 RUN echo 'deb http://deb.debian.org/debian bullseye-backports main' > /etc/apt/sources.list.d/backports.list
 
-RUN echo ${DB_DSN}
-RUN echo ${DB_DSN2}
-RUN echo ${db_dsn}
-
 # Installs libvips + required libraries
 RUN DEBIAN_FRONTEND=noninteractive \ 
   apt-get update && \
@@ -81,7 +77,8 @@ COPY . .
 
 RUN touch .envrc && make test
 RUN go build -o ${GOPATH}/bin/cnvrt ./cmd/api/main.go
-RUN make db/migrate_up
+# RUN make db/migrate_up
+RUN migrate -path=./migrations -database=${DB_DSN} up
 
 FROM debian:bullseye-slim
 
