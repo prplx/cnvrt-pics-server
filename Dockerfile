@@ -5,7 +5,7 @@ ARG VIPS_VERSION=8.14.5
 ARG CGIF_VERSION=0.3.0
 ARG LIBSPNG_VERSION=0.7.3
 ARG TARGETARCH
-# ARG db_dsn
+ARG db_dsn
 
 ENV PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
 # ENV DB_DSN=$db_dsn
@@ -78,7 +78,7 @@ COPY . .
 RUN touch .envrc && make test
 RUN go build -o ${GOPATH}/bin/cnvrt ./cmd/api/main.go
 # RUN make db/migrate_up
-RUN migrate -path=./migrations -database=${DB_DSN} up
+RUN migrate -path=./migrations -database=$db_dsn up
 
 FROM debian:bullseye-slim
 
