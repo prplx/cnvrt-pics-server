@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/prplx/cnvrt/internal/helpers"
@@ -64,7 +65,7 @@ func (a *Archiver) Archive(jobID int64) error {
 		return errors.Wrap(err, "error zipping files")
 	}
 
-	downloadPath := helpers.BuildPath("/uploads", jobID, archiveName)
+	downloadPath := helpers.BuildPath(strings.TrimPrefix(a.config.Process.UploadDir, "/app/"), jobID, archiveName)
 	err = a.communicator.SendSuccessArchiving(jobID, downloadPath)
 	if err != nil {
 		reportError(err)
