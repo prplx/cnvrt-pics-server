@@ -64,7 +64,7 @@ func (a *Archiver) Archive(jobID int64) error {
 		return errors.Wrap(err, "error zipping files")
 	}
 
-	downloadPath := helpers.BuildPath(a.config.Process.UploadDir, jobID, archiveName)
+	downloadPath := helpers.BuildPath("/uploads", jobID, archiveName)
 	err = a.communicator.SendSuccessArchiving(jobID, downloadPath)
 	if err != nil {
 		reportError(err)

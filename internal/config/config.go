@@ -2,7 +2,6 @@ package config
 
 import (
 	"flag"
-	"fmt"
 	"os"
 
 	"github.com/prplx/cnvrt/internal/types"
@@ -33,8 +32,6 @@ func NewConfig(configPath string) (*types.Config, error) {
 	flag.StringVar(&config.Firebase.ProjectID, "firebase-project-id", "", "Firebase project ID")
 	flag.StringVar(&config.Server.AllowOrigins, "allow-origins", "", "Allow origins")
 	flag.Parse()
-
-	fmt.Printf("%+v\n", config)
 
 	return config, nil
 }
