@@ -3,10 +3,12 @@ package router
 import (
 	"fmt"
 	"net/http"
+
 	"strings"
 
 	"firebase.google.com/go/v4/appcheck"
 	"github.com/gofiber/fiber/v2"
+
 	"github.com/prplx/cnvrt/internal/helpers"
 	"github.com/prplx/cnvrt/internal/services/validator"
 	"github.com/prplx/cnvrt/internal/types"
@@ -22,7 +24,7 @@ func requireAppCheck(appCheck *appcheck.Client, appCheckToken string) error {
 
 func checkAppCheckToken(ctx *fiber.Ctx) error {
 	config := ctx.Locals("config").(*types.Config)
-	if helpers.IsTest() || strings.Contains(ctx.Path(), "/ws") || strings.Contains(ctx.Path(), healthcheckEndpoint) {
+	if !helpers.IsProd() || strings.Contains(ctx.Path(), "/ws") || strings.Contains(ctx.Path(), healthcheckEndpoint) {
 		return ctx.Next()
 	}
 
