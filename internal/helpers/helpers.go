@@ -29,6 +29,10 @@ func IsTest() bool {
 	return os.Getenv("ENV") == "test"
 }
 
+func IsProd() bool {
+	return os.Getenv("ENV") == "production"
+}
+
 func MustGetHostnameFromURL(input string) string {
 	url, err := url.Parse(input)
 	if err != nil {
