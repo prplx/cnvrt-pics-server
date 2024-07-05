@@ -36,7 +36,7 @@ func NewProcessor(config *types.Config, or repositories.Operations, c services.C
 
 func (p *Processor) Startup() {
 	vips.Startup(&vips.Config{
-		ConcurrencyLevel: 8,
+		ConcurrencyLevel: 10,
 	})
 }
 

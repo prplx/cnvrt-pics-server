@@ -2,8 +2,8 @@ ARG GOLANG_VERSION=1.22.5
 FROM golang:${GOLANG_VERSION}-bullseye as builder
 
 ARG VIPS_VERSION=8.15.2
-ARG CGIF_VERSION=0.3.0
-ARG LIBSPNG_VERSION=0.7.3
+ARG CGIF_VERSION=0.4.1
+ARG LIBSPNG_VERSION=0.7.4
 ARG TARGETARCH
 ARG DB_DSN
 
@@ -22,11 +22,11 @@ RUN DEBIAN_FRONTEND=noninteractive \
   gobject-introspection gtk-doc-tools libglib2.0-dev libjpeg62-turbo-dev libpng-dev \
   libwebp-dev libtiff5-dev libexif-dev libxml2-dev libpoppler-glib-dev \
   swig libpango1.0-dev libmatio-dev libopenslide-dev libcfitsio-dev libopenjp2-7-dev liblcms2-dev \
-  libgsf-1-dev fftw3-dev liborc-0.4-dev librsvg2-dev libimagequant-dev libaom-dev/bullseye-backports libheif-dev && \
+  libgsf-1-dev fftw3-dev liborc-0.4-dev librsvg2-dev libimagequant-dev libaom-dev/bullseye-backports libheif-dev libgirepository1.0-dev && \
   pip3 install meson && \
   cd /tmp && \
-    curl -fsSLO https://github.com/dloebl/cgif/archive/refs/tags/V${CGIF_VERSION}.tar.gz && \
-    tar xf V${CGIF_VERSION}.tar.gz && \
+    curl -fsSLO https://github.com/dloebl/cgif/archive/refs/tags/v${CGIF_VERSION}.tar.gz && \
+    tar xf v${CGIF_VERSION}.tar.gz && \
     cd cgif-${CGIF_VERSION} && \
     meson build --prefix=/usr/local --libdir=/usr/local/lib --buildtype=release && \
     cd build && \
@@ -47,17 +47,12 @@ RUN DEBIAN_FRONTEND=noninteractive \
     curl -fsSLO https://github.com/libvips/libvips/releases/download/v${VIPS_VERSION}/vips-${VIPS_VERSION}.tar.xz && \
     tar xf vips-${VIPS_VERSION}.tar.xz && \
     cd vips-${VIPS_VERSION} && \
-    meson setup _build \
-    --buildtype=release \
-    --strip \
-    --prefix=/usr/local \
-    --libdir=lib \
-    -Dgtk_doc=false \
-    -Dmagick=disabled \
-    -Dintrospection=false && \
-    ninja -C _build && \
-    ninja -C _build install && \
-    curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-arm64.tar.gz | tar xvz && \
+    meson setup build --prefix /usr/local && \
+    cd build && \
+    meson compile && \
+    meson test && \
+    meson install && \
+  curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-arm64.tar.gz | tar xvz && \
     mv migrate $GOPATH/bin/migrate && \
   ldconfig && \
   rm -rf /usr/local/lib/python* && \

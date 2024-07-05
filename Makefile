@@ -62,7 +62,7 @@ db/migrate_create:
 	migrate create -seq -ext=.sql -dir=./migrations $(name)
 
 docker/build:
-	docker build --build-arg db_dsn=${DB_DSN} -t cnvrt .
+	docker build --build-arg  DB_DSN=${DB_DSN} -t cnvrt .
 
 docker/run:
 	docker run -e CONFIG_PATH="/app/config.yaml" -e DB_DSN=${DB_DSN} -e ENV="production" -e METRICS_USER=${METRICS_USER} -e METRICS_PASSWORD=${METRICS_PASSWORD} -e FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID} -e PORT=3001 -e UPLOAD_DIR="/app/uploads" -e ALLOW_ORIGINS="https://cnvrt.pics" -p 3001:3001 cnvrt
