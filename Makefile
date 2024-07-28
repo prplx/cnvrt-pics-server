@@ -12,7 +12,7 @@ build:
 	go build -o=/tmp/bin/${BINARY_NAME} ${MAIN_PACKAGE_PATH}
 
 run:
-	@go run ./cmd/api/main.go -db-dsn=${DB_DSN} -metrics-user=${METRICS_USER} -metrics-password=${METRICS_PASSWORD} -firebase-project-id=${FIREBASE_PROJECT_ID} -allow-origins=${ALLOW_ORIGINS} & caddy run
+	@go run ./cmd/api/main.go -db-dsn=${DB_DSN} -metrics-user=${METRICS_USER} -metrics-password=${METRICS_PASSWORD} -firebase-project-id=${FIREBASE_PROJECT_ID} -allow-origins=${ALLOW_ORIGINS} & docker-compose up -d && caddy run
 
 run/docker: docker/run 
 	@caddy run

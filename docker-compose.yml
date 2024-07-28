@@ -1,0 +1,11 @@
+version: '3.8'
+services:
+  db:
+    image: postgres
+    container_name: cnvrt-postgres
+    environment:
+      POSTGRES_USER: cnvrt
+      POSTGRES_PASSWORD: cnvrt
+      POSTGRES_DB: cnvrt
+    ports:
+      - '5433:5432'
