@@ -6,7 +6,7 @@ require (
 	firebase.google.com/go/v4 v4.13.0
 	github.com/davidbyttow/govips/v2 v2.15.0
 	github.com/gofiber/contrib/websocket v1.3.0
-	github.com/gofiber/fiber/v2 v2.51.0
+	github.com/gofiber/fiber/v2 v2.52.5
 	github.com/gofiber/storage/postgres/v3 v3.0.0-20231222121935-c3d011b5be82
 	github.com/google/uuid v1.5.0
 	github.com/h2non/filetype v1.1.3
