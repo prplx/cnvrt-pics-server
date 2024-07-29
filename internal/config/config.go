@@ -41,6 +41,17 @@ func NewConfig(configPath string) (*types.Config, error) {
 
 func TestConfig() *types.Config {
 	return &types.Config{
+		Server: struct {
+			AllowOrigins    string `yaml:"allowOrigins"`
+			AllowHeaders    string `yaml:"allowHeaders"`
+			AllowMethods    string `yaml:"allowMethods"`
+			BodyLimit       int    `yaml:"bodyLimit"`
+			Host            string `yaml:"host"`
+			Port            int    `yaml:"port"`
+			ShutdownTimeout int    `yaml:"shutdownTimeout"`
+		}{
+			AllowOrigins: "http://cnvrt.local",
+		},
 		Process: struct {
 			UploadDir string `yaml:"uploadDir"`
 		}{

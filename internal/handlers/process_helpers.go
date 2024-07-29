@@ -66,7 +66,7 @@ func (h *Handlers) validateFileType(buf []byte) error {
 
 	kind, _ := filetype.Match(buf)
 	allowedExtensions := strings.Split(h.services.Config.App.SupportedFileTypes, ", ")
-	if !helpers.Contains(allowedExtensions, kind.Extension) {
+	if !helpers.Contains(allowedExtensions, kind.Extension) && (helpers.Contains(allowedExtensions, "avif") && !isAvif(buf)) {
 		return FileTypeIsNotSupported
 	}
 	return nil
@@ -85,4 +85,8 @@ func fileHeaderToBytes(fileHeader *multipart.FileHeader) ([]byte, error) {
 	}
 
 	return bytes, nil
+}
+
+func isAvif(buf []byte) bool {
+	return len(buf) > 6 && buf[0] == 0x00 && buf[1] == 0x00 && buf[2] == 0x00 && buf[3] == 0x20 && buf[4] == 0x66 && buf[5] == 0x74 && buf[6] == 0x79 && buf[7] == 0x70
 }
