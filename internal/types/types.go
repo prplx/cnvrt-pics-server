@@ -1,6 +1,9 @@
 package types
 
-import "io"
+import (
+	"io"
+	"time"
+)
 
 type Config struct {
 	Env    string
@@ -65,4 +68,5 @@ type WebsocketConnection interface {
 	Close() error
 	Params(key string, defaultValue ...string) string
 	WriteJSON(v interface{}) error
+	SetReadDeadline(t time.Time) error
 }

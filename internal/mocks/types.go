@@ -11,6 +11,7 @@ package mocks
 
 import (
 	reflect "reflect"
+	time "time"
 
 	gomock "go.uber.org/mock/gomock"
 )
@@ -85,6 +86,20 @@ func (m *MockWebsocketConnection) ReadMessage() (int, []byte, error) {
 func (mr *MockWebsocketConnectionMockRecorder) ReadMessage() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadMessage", reflect.TypeOf((*MockWebsocketConnection)(nil).ReadMessage))
+}
+
+// SetReadDeadline mocks base method.
+func (m *MockWebsocketConnection) SetReadDeadline(t time.Time) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetReadDeadline", t)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SetReadDeadline indicates an expected call of SetReadDeadline.
+func (mr *MockWebsocketConnectionMockRecorder) SetReadDeadline(t any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetReadDeadline", reflect.TypeOf((*MockWebsocketConnection)(nil).SetReadDeadline), t)
 }
 
 // WriteJSON mocks base method.
