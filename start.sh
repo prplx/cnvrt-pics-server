@@ -5,12 +5,10 @@ until /usr/local/bin/migrate -path=/app/migrations -database=${DB_DSN} up; do
 done
 
 if [ "$ENV" = "development" ]; then \
-  ls -a $GOPATH/pkg/mod/github.com
-  make build 
-  # air --build.cmd "make build" --build.bin "make bin" --build.delay "100" \
-	# 		--build.exclude_dir "uploads, tmp" \
-	# 		--build.include_ext "go, tpl, tmpl, html, css, scss, js, ts, sql, jpeg, jpg, gif, png, bmp, svg, webp, ico" \
-	# 		--misc.clean_on_exit "true"
+  air --build.cmd "make build" --build.bin "make bin" --build.delay "100" \
+			--build.exclude_dir "uploads, tmp" \
+			--build.include_ext "go, tpl, tmpl, html, css, scss, js, ts, sql, jpeg, jpg, gif, png, bmp, svg, webp, ico" \
+			--misc.clean_on_exit "true"
 else /usr/local/bin/cnvrt \
   -env=${ENV} \
   -port=${PORT} \
