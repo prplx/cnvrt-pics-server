@@ -5,10 +5,8 @@ ARG VIPS_VERSION=8.15.2
 ARG CGIF_VERSION=0.4.1
 ARG LIBSPNG_VERSION=0.7.4
 ARG TARGETARCH
-ARG DB_DSN
 
 ENV PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
-
 
 # Installs libvips + required libraries
 RUN DEBIAN_FRONTEND=noninteractive \ 
@@ -50,8 +48,6 @@ RUN DEBIAN_FRONTEND=noninteractive \
     meson compile && \
     meson test && \
     meson install && \
-  curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-arm64.tar.gz | tar xvz && \
-    mv migrate $GOPATH/bin/migrate && \
   ldconfig && \
   rm -rf /usr/local/lib/python* && \
   rm -rf /usr/local/lib/libvips-cpp.* && \
@@ -67,11 +63,10 @@ RUN go mod download
 
 COPY . .
 
-RUN touch .envrc && make test
+# RUN touch .envrc && make test
 RUN go build -o ${GOPATH}/bin/cnvrt ./cmd/api/main.go
-RUN migrate -path=./migrations -database=${DB_DSN}?sslmode=disable up
 
-FROM debian:bookworm-slim
+FROM debian:bookworm-slim as base
 
 COPY --from=builder /usr/local/lib /usr/local/lib
 COPY --from=builder /etc/ssl/certs /etc/ssl/certs
@@ -80,7 +75,7 @@ COPY --from=builder /etc/ssl/certs /etc/ssl/certs
 RUN DEBIAN_FRONTEND=noninteractive \
   apt-get update && \
   apt-get install --no-install-recommends -y \
-  procps libglib2.0-0 libjpeg62-turbo libpng16-16 libopenexr-3-1-30 \
+  curl procps libglib2.0-0 libjpeg62-turbo libpng16-16 libopenexr-3-1-30 \
   libwebp7 libwebpmux3 libwebpdemux2 libtiff6 libexif12 libxml2 libpoppler-glib8 \
   libpango1.0-0 libmatio11 libopenslide0 libopenjp2-7 libjemalloc2 \
   libgsf-1-114 libfftw3-bin liborc-0.4-0 librsvg2-2 libcfitsio10 libimagequant0 dav1d libheif1 && \
@@ -88,28 +83,57 @@ RUN DEBIAN_FRONTEND=noninteractive \
   apt-get autoremove -y && \
   apt-get autoclean && \
   apt-get clean && \
+  curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-arm64.tar.gz | tar xvz && \
+  mv migrate /usr/local/bin/migrate && \
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 COPY --from=builder /go/bin/cnvrt /usr/local/bin/cnvrt
-COPY config.yaml /app/config.yaml
+COPY config.yaml /app/
+COPY migrations /app/migrations
 
 ENV VIPS_WARNING=0
 ENV MALLOC_ARENA_MAX=2
 ENV LD_PRELOAD=/usr/local/lib/libjemalloc.so
 
+EXPOSE ${PORT}
+
+FROM base AS prod
+
 RUN chown -R nobody:nogroup /app
 RUN chmod 755 /app
+
 # use unprivileged user
 USER nobody
 
-CMD /usr/local/bin/cnvrt \
-  -env=${ENV} \
-  -port=${PORT} \
-  -upload-dir=${UPLOAD_DIR} \
-  -db-dsn=${DB_DSN} \
-  -metrics-user=${METRICS_USER} \
-  -metrics-password=${METRICS_PASSWORD} \
-  -firebase-project-id=${FIREBASE_PROJECT_ID} \
-  -allow-origins=${ALLOW_ORIGINS}
+CMD ["/app/start.sh"]
 
-EXPOSE ${PORT}
+FROM base AS dev
+
+ARG GO_VERSION=1.22.5
+
+WORKDIR /app
+
+# Download and install Go
+RUN apt-get update && apt-get install make && \
+    curl -L https://golang.org/dl/go${GO_VERSION}.linux-arm64.tar.gz -o go${GO_VERSION}.linux-arm64.tar.gz \
+        && tar -C /usr/local -xzf go${GO_VERSION}.linux-arm64.tar.gz \
+        && rm go${GO_VERSION}.linux-arm64.tar.gz
+
+# Set Go environment variables
+ENV GOROOT /usr/local/go
+ENV GOPATH /go
+ENV PATH $GOPATH/bin:$GOROOT/bin:$PATH
+
+# Create Go workspace directory
+RUN mkdir -p "$GOPATH/src" "$GOPATH/bin" && chmod -R 777 "$GOPATH"
+
+RUN go install github.com/air-verse/air@latest
+
+COPY --from=builder /go/pkg /go/pkg
+# RUN go mod download
+
+ENV PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
+
+CMD vips --version && go mod tidy && make build
+
+# CMD ["/app/start.sh"]
