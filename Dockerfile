@@ -1,10 +1,11 @@
 ARG GOLANG_VERSION=1.22.5
+
 FROM golang:${GOLANG_VERSION}-bookworm as builder
 
 ARG VIPS_VERSION=8.15.2
 ARG CGIF_VERSION=0.4.1
 ARG LIBSPNG_VERSION=0.7.4
-ARG TARGETARCH
+ARG TARGETARCH=arm
 
 ENV PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
 
@@ -28,7 +29,6 @@ RUN DEBIAN_FRONTEND=noninteractive \
     cd build && \
     ninja && \
     ninja install && \
-  cd /tmp && \
     curl -fsSLO https://github.com/randy408/libspng/archive/refs/tags/v${LIBSPNG_VERSION}.tar.gz && \
     tar xf v${LIBSPNG_VERSION}.tar.gz && \
     cd libspng-${LIBSPNG_VERSION} && \
@@ -39,7 +39,6 @@ RUN DEBIAN_FRONTEND=noninteractive \
       --libdir=lib && \
     ninja -C _build && \
     ninja -C _build install && \
-  cd /tmp && \
     curl -fsSLO https://github.com/libvips/libvips/releases/download/v${VIPS_VERSION}/vips-${VIPS_VERSION}.tar.xz && \
     tar xf vips-${VIPS_VERSION}.tar.xz && \
     cd vips-${VIPS_VERSION} && \
@@ -48,11 +47,13 @@ RUN DEBIAN_FRONTEND=noninteractive \
     meson compile && \
     meson test && \
     meson install && \
-  ldconfig && \
-  rm -rf /usr/local/lib/python* && \
-  rm -rf /usr/local/lib/libvips-cpp.* && \
-  rm -rf /usr/local/lib/*.a && \
-  rm -rf /usr/local/lib/*.la
+    ldconfig && \
+    curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-${TARGETARCH}64.tar.gz | tar xvz && \
+    mv migrate /usr/local/bin/migrate && \
+    rm -rf /usr/local/lib/python* && \
+    rm -rf /usr/local/lib/libvips-cpp.* && \
+    rm -rf /usr/local/lib/*.a && \
+    rm -rf /usr/local/lib/*.la
 
 WORKDIR ${GOPATH}/src/github.com/prplx/cnvrt
 
@@ -66,10 +67,14 @@ COPY . .
 # RUN touch .envrc && make test
 RUN go build -o ${GOPATH}/bin/cnvrt ./cmd/api/main.go
 
-FROM debian:bookworm-slim as base
+FROM debian:bookworm-slim as prod
 
 COPY --from=builder /usr/local/lib /usr/local/lib
 COPY --from=builder /etc/ssl/certs /etc/ssl/certs
+COPY --from=builder /usr/local/bin/migrate /usr/local/bin/migrate
+COPY --from=builder /go/bin/cnvrt /usr/local/bin/cnvrt
+COPY config.yaml /app/
+COPY migrations /app/migrations
 
 # Install runtime dependencies
 RUN DEBIAN_FRONTEND=noninteractive \
@@ -83,24 +88,15 @@ ln -s /usr/lib/$(uname -m)-linux-gnu/libjemalloc.so.2 /usr/local/lib/libjemalloc
 apt-get autoremove -y && \
 apt-get autoclean && \
 apt-get clean && \
-curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-arm64.tar.gz | tar xvz && \
-mv migrate /usr/local/bin/migrate && \
 rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-COPY --from=builder /go/bin/cnvrt /usr/local/bin/cnvrt
-COPY config.yaml /app/
-COPY migrations /app/migrations
 
 ENV VIPS_WARNING=0
 ENV MALLOC_ARENA_MAX=2
 ENV LD_PRELOAD=/usr/local/lib/libjemalloc.so
 
-FROM base AS prod
-
 RUN chown -R nobody:nogroup /app
 RUN chmod 755 /app
 
-# use unprivileged user
 USER nobody
 
 EXPOSE ${PORT}
@@ -109,29 +105,10 @@ CMD ["/app/start.sh"]
 
 FROM builder AS dev
 
-ARG GO_VERSION=1.22.5
-
-WORKDIR /app
-
-# Download and install Go
-RUN apt-get update && apt-get install make && \
-curl -L https://golang.org/dl/go${GO_VERSION}.linux-arm64.tar.gz -o go${GO_VERSION}.linux-arm64.tar.gz \
-&& tar -C /usr/local -xzf go${GO_VERSION}.linux-arm64.tar.gz \
-&& rm go${GO_VERSION}.linux-arm64.tar.gz
-
-# Set Go environment variables
-ENV GOROOT /usr/local/go
-ENV GOPATH /go
-ENV PATH $GOPATH/bin:$GOROOT/bin:$PATH
-
-# Create Go workspace directory
-RUN mkdir -p "$GOPATH/src" "$GOPATH/bin" && chmod -R 777 "$GOPATH"
-
 RUN go install github.com/air-verse/air@latest
 
 COPY --from=builder /go/pkg /go/pkg
-COPY --from=base /usr/local/bin/migrate /usr/local/bin/migrate
 
-EXPOSE 3002
+EXPOSE ${PORT}
 
 CMD ["/app/start.sh"]
