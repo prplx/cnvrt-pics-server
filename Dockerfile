@@ -56,16 +56,13 @@ RUN DEBIAN_FRONTEND=noninteractive \
     rm -rf /usr/local/lib/*.a && \
     rm -rf /usr/local/lib/*.la
 
-WORKDIR ${GOPATH}/src/github.com/prplx/cnvrt
+WORKDIR /app 
 
 COPY . .
 
-# RUN touch .envrc && make test
-RUN go mod download && go build -o "${GOPATH}"/bin/cnvrt ./cmd/api/main.go
+RUN make test && go mod download && go build -o "${GOPATH}"/bin/cnvrt ./cmd/api/main.go
 
-CMD ["/app/migrations.sh"] 
-
-FROM debian:bookworm-slim as prod
+FROM debian:bookworm-slim as production
 
 ENV VIPS_WARNING=0
 ENV MALLOC_ARENA_MAX=2
@@ -75,9 +72,10 @@ COPY --from=builder /usr/local/lib /usr/local/lib
 COPY --from=builder /etc/ssl/certs /etc/ssl/certs
 COPY --from=builder /usr/local/bin/migrate /usr/local/bin/migrate
 COPY --from=builder /go/bin/cnvrt /usr/local/bin/cnvrt
-COPY config.yaml /app/
+COPY config.yaml migrations.sh /app/
+COPY migrations /app/migrations
 
-# Install runtime dependencies
+# Installs runtime dependencies
 RUN DEBIAN_FRONTEND=noninteractive \
   apt-get update && \
   apt-get install --no-install-recommends -y \
@@ -96,24 +94,26 @@ USER nobody
 
 EXPOSE ${PORT}
 
-RUN /usr/local/bin/cnvrt \
-  -env="${ENV}" \
-  -port="${PORT}" \
-  -upload-dir="${UPLOAD_DIR}" \
-  -db-dsn="${DB_DSN}" \
-  -metrics-user="${METRICS_USER}" \
-  -metrics-password="${METRICS_PASSWORD}" \
-  -firebase-project-id="${FIREBASE_PROJECT_ID}" \
-  -allow-origins="${ALLOW_ORIGINS}"
+CMD ["/bin/sh", "-c", "/app/migrations.sh && ./usr/local/bin/cnvrt \
+  -env=\"${ENV}\" \
+  -port=\"${PORT}\" \
+  -upload-dir=\"${UPLOAD_DIR}\" \
+  -db-dsn=\"${DB_DSN}\" \
+  -metrics-user=\"${METRICS_USER}\" \
+  -metrics-password=\"${METRICS_PASSWORD}\" \
+  -firebase-project-id=\"${FIREBASE_PROJECT_ID}\" \
+  -allow-origins=\"${ALLOW_ORIGINS}\""]
 
-FROM builder AS dev
+FROM builder AS development
 
 RUN go install github.com/air-verse/air@latest
 
 EXPOSE ${PORT}
 
-RUN air --build.cmd "make build" --build.bin "make bin" --build.delay "100" \
-  --build.exclude_dir "uploads, tmp" \
-  --build.include_ext "go, tpl, tmpl, html" \
-  --misc.clean_on_exit "true"
-
+CMD ["/bin/sh", "-c", "./migrations.sh && air \
+  --build.cmd 'make build' \
+  --build.bin 'make bin' \
+  --build.delay '100' \
+  --build.exclude_dir 'uploads, tmp' \
+  --build.include_ext 'go, tpl, tmpl, html' \
+  --misc.clean_on_exit 'true'"]
