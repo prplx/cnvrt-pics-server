@@ -2,7 +2,6 @@ package config
 
 import (
 	"flag"
-	"fmt"
 	"os"
 
 	"github.com/prplx/cnvrt/internal/types"
@@ -24,7 +23,7 @@ func NewConfig(configPath string) (*types.Config, error) {
 		return nil, err
 	}
 
-	flag.IntVar(&config.Server.Port, "port", 3001, "Port")
+	flag.IntVar(&config.Server.Port, "port", 3002, "Port")
 	flag.StringVar(&config.Process.UploadDir, "upload-dir", "./uploads", "Uploads directory")
 	flag.StringVar(&config.DB.DSN, "db-dsn", "", "Database DSN")
 	flag.StringVar(&config.Env, "env", "development", "Environment")
@@ -33,8 +32,6 @@ func NewConfig(configPath string) (*types.Config, error) {
 	flag.StringVar(&config.Firebase.ProjectID, "firebase-project-id", "", "Firebase project ID")
 	flag.StringVar(&config.Server.AllowOrigins, "allow-origins", "", "Allow origins")
 	flag.Parse()
-
-	fmt.Printf("%+v\n", config)
 
 	return config, nil
 }
