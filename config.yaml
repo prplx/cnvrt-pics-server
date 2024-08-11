@@ -8,7 +8,7 @@ server:
 app:
   name: cnvrt
   jobFlushTimeout: 3600 # seconds
-  supportedFileTypes: png, jpg, jpeg, webp, avif
+  supportedFileTypes: png, jpg, jpeg, webp, avif, heic
   maxFileCount: 10
 
 firebase:

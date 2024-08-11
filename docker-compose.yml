@@ -1,11 +1,32 @@
-version: '3.8'
 services:
+  app:
+    container_name: cnvrt-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    ports:
+      - ${APP_PORT}:${APP_PORT}
+    depends_on:
+      - db
+    environment:
+      - CONFIG_PATH=/app/config.yaml
+      - DB_DSN=${DB_DSN}
+      - ENV=${ENV}
+      - METRICS_USER=${METRICS_USER}
+      - METRICS_PASSWORD=${METRICS_PASSWORD}
+      - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}
+      - UPLOAD_DIR=/app/uploads
+      - ALLOW_ORIGINS=${ALLOW_ORIGINS}
+      - PORT=${APP_PORT}
+    volumes:
+      - ./:/app/
   db:
     image: postgres
-    container_name: cnvrt-postgres
+    container_name: cnvrt-db
     environment:
       POSTGRES_USER: cnvrt
       POSTGRES_PASSWORD: cnvrt
       POSTGRES_DB: cnvrt
     ports:
-      - '5433:5432'
+      - ${DB_PORT}:${DB_PORT}
