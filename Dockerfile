@@ -115,5 +115,5 @@ CMD ["/bin/sh", "-c", "./migrations.sh && air \
   --build.bin 'make bin' \
   --build.delay '100' \
   --build.exclude_dir 'uploads, tmp' \
-  --build.include_ext 'go, tpl, tmpl, html' \
+  --build.include_ext 'go, tpl, tmpl, html, yml, yaml' \
   --misc.clean_on_exit 'true'"]
