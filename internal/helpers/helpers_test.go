@@ -86,3 +86,41 @@ func TestBuildPath(t *testing.T) {
 		})
 	}
 }
+
+func TestGetSessionCookieDomain(t *testing.T) {
+	tests := []struct {
+		name     string
+		URL      string
+		expected string
+	}{
+		{
+			name:     "URL with subdomain",
+			URL:      "https://sub.example.com",
+			expected: ".example.com",
+		},
+		{
+			name:     "URL without subdomain",
+			URL:      "http://example.com",
+			expected: "example.com",
+		},
+		{
+			name:     "URL with multiple subdomains",
+			URL:      "http://sub.sub.example.com",
+			expected: ".sub.example.com",
+		},
+		{
+			name:     "URL with single part",
+			URL:      "http://localhost",
+			expected: "localhost",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := helpers.GetSessionCookieDomain(tt.URL)
+			if result != tt.expected {
+				t.Errorf("GetSessionCookieDomain(%s) = %s; expected %s", tt.URL, result, tt.expected)
+			}
+		})
+	}
+}
