@@ -64,10 +64,6 @@ RUN make test && go mod download && go build -o "${GOPATH}"/bin/cnvrt ./cmd/api/
 
 FROM debian:bookworm-slim as production
 
-ENV VIPS_WARNING=0
-ENV MALLOC_ARENA_MAX=2
-ENV LD_PRELOAD=/usr/local/lib/libjemalloc.so
-
 COPY --from=builder /usr/local/lib /usr/local/lib
 COPY --from=builder /etc/ssl/certs /etc/ssl/certs
 COPY --from=builder /usr/local/bin/migrate /usr/local/bin/migrate
@@ -77,18 +73,22 @@ COPY migrations /app/migrations
 
 # Installs runtime dependencies
 RUN DEBIAN_FRONTEND=noninteractive \
-  apt-get update && \
-  apt-get install --no-install-recommends -y \
-  procps libglib2.0-0 libjpeg62-turbo libpng16-16 libopenexr-3-1-30 \
-  libwebp7 libwebpmux3 libwebpdemux2 libtiff6 libexif12 libxml2 libpoppler-glib8 \
-  libpango1.0-0 libmatio11 libopenslide0 libopenjp2-7 libjemalloc2 \
-  libgsf-1-114 libfftw3-bin liborc-0.4-0 librsvg2-2 libcfitsio10 libimagequant0 dav1d libheif1 && \
-  ln -s /usr/lib/"$(uname -m)"-linux-gnu/libjemalloc.so.2 /usr/local/lib/libjemalloc.so && \
-  apt-get autoremove -y && \
-  apt-get autoclean && \
-  apt-get clean && \
-  rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
-  chown -R nobody:nogroup /app && chmod 755 /app
+apt-get update && \
+apt-get install --no-install-recommends -y \
+procps libglib2.0-0 libjpeg62-turbo libpng16-16 libopenexr-3-1-30 \
+libwebp7 libwebpmux3 libwebpdemux2 libtiff6 libexif12 libxml2 libpoppler-glib8 \
+libpango1.0-0 libmatio11 libopenslide0 libopenjp2-7 libjemalloc2 \
+libgsf-1-114 libfftw3-bin liborc-0.4-0 librsvg2-2 libcfitsio10 libimagequant0 dav1d libheif1 && \
+ln -s /usr/lib/"$(uname -m)"-linux-gnu/libjemalloc.so.2 /usr/local/lib/libjemalloc.so && \
+apt-get autoremove -y && \
+apt-get autoclean && \
+apt-get clean && \
+rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
+chown -R nobody:nogroup /app && chmod 755 /app
+
+ENV VIPS_WARNING=0
+ENV MALLOC_ARENA_MAX=2
+ENV LD_PRELOAD=/usr/local/lib/libjemalloc.so
 
 USER nobody
 
