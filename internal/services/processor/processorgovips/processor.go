@@ -16,6 +16,17 @@ import (
 	"github.com/prplx/cnvrt/internal/types"
 )
 
+var exifOrientationToRotateAngle = map[string]vips.Angle{
+	"1": vips.Angle0,
+	"2": vips.Angle0,
+	"3": vips.Angle180,
+	"4": vips.Angle0,
+	"5": vips.Angle270,
+	"6": vips.Angle90,
+	"7": vips.Angle90,
+	"8": vips.Angle270,
+}
+
 type Processor struct {
 	communicator         services.Communicator
 	logger               services.Logger
@@ -103,9 +114,23 @@ func (p *Processor) Process(ctx context.Context, input types.ImageProcessInput) 
 		return
 	}
 
+	rotationAngle := vips.Angle0
+	exif := image.GetExif()
+	orientation := exif["exif-ifd0-Orientation"]
+
+	if orientation != "" {
+		orientationN := string([]rune(orientation)[0])
+		rotationAngle = exifOrientationToRotateAngle[orientationN]
+	}
+
+	if rotationAngle != vips.Angle0 {
+		if err := image.Rotate(rotationAngle); err != nil {
+			reportError(errors.Wrap(err, "error rotating image"))
+		}
+	}
+
 	originalWidth = image.Width()
 	originalHeight = image.Height()
-
 	if existingJobFileExists {
 		resultFileName = possiblyExistingOperation.FileName
 		image.Close()
