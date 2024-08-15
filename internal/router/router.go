@@ -83,7 +83,7 @@ func Register(app *fiber.App, handlers *handlers.Handlers, config *types.Config,
 	sessionConfig := session.Config{
 		Expiration:     24 * time.Hour,
 		KeyLookup:      "cookie:session_id",
-		CookieDomain:   helpers.MustGetHostnameFromURL(config.Server.AllowOrigins),
+		CookieDomain:   helpers.GetSessionCookieDomain(config.Server.AllowOrigins),
 		CookieHTTPOnly: true,
 	}
 	limiterConfig := limiter.Config{

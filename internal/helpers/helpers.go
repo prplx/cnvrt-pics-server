@@ -64,3 +64,11 @@ func GetMapKeys[T comparable](m map[string][]T) []string {
 	}
 	return keys
 }
+
+func GetSessionCookieDomain(URL string) string {
+	split := strings.Split(URL, ".")
+	if len(split) < 3 {
+		return MustGetHostnameFromURL(URL)
+	}
+	return "." + strings.Join(split[1:], ".")
+}

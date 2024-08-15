@@ -1,4 +1,10 @@
 uploads
 .env
 .envrc
+.github
 coverage.*
+Caddyfile
+docker-compose.yml
+Dockerfile
+readme.md
+tmp
